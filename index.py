@@ -280,7 +280,7 @@ html = """
 >
 
     <img
-        src="industry_heatmap.png"
+        src="new_heatmap.map"
         style="
             max-width:95%;
             height:auto;
