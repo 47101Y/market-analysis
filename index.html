@@ -1,193 +1,231 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>Awesome-pyecharts</title>
-                <script type="text/javascript" src="https://assets.pyecharts.org/assets/v6/echarts.min.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>成交额TOP50股票统计</title>
 
-    
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Microsoft YaHei", sans-serif;
+      background: #f5f7fb;
+      color: #222;
+      padding: 30px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 15px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 25px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    #chart {
+      width: 100%;
+      height: 700px;
+    }
+
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      color: #888;
+      font-size: 14px;
+    }
+  </style>
 </head>
-<body >
-    <div id="426f5a8129a94b398e58f1609785c1fd" class="chart-container" style="width:900px; height:500px; "></div>
-    <script>
-        var chart_426f5a8129a94b398e58f1609785c1fd = echarts.init(
-            document.getElementById('426f5a8129a94b398e58f1609785c1fd'), 'white', {renderer: 'canvas', locale: 'ZH'});
-        var option_426f5a8129a94b398e58f1609785c1fd = {
-    "animation": true,
-    "animationThreshold": 2000,
-    "animationDuration": 1000,
-    "animationEasing": "cubicOut",
-    "animationDelay": 0,
-    "animationDurationUpdate": 300,
-    "animationEasingUpdate": "cubicOut",
-    "animationDelayUpdate": 0,
-    "aria": {
-        "enabled": false
-    },
-    "series": [
-        {
-            "type": "bar",
-            "name": "\u6d4b\u8bd5",
-            "legendHoverLink": true,
-            "data": [
-                1,
-                2,
-                3
-            ],
-            "realtimeSort": false,
-            "showBackground": false,
-            "stackStrategy": "samesign",
-            "cursor": "pointer",
-            "barMinHeight": 0,
-            "barCategoryGap": "20%",
-            "barGap": "30%",
-            "large": false,
-            "largeThreshold": 400,
-            "seriesLayoutBy": "column",
-            "datasetIndex": 0,
-            "clip": true,
-            "zlevel": 0,
-            "z": 2,
-            "label": {
-                "show": true,
-                "margin": 8,
-                "richInheritPlainLabel": true,
-                "valueAnimation": false
-            }
+<body>
+  <div class="container">
+
+    <div class="title">A股成交额TOP50股票统计</div>
+
+    <div class="subtitle">
+      横轴：日期 ｜ 纵轴：股票数量 ｜ 数据分类：新增 / 弱转强 / 强者恒强
+    </div>
+
+    <div class="card">
+      <div id="chart"></div>
+    </div>
+
+    <div class="footer">
+      数据来源：个人量化筛选结果（2026.03.23 至今）
+    </div>
+
+  </div>
+
+  <script>
+
+    // =========================
+    // 日期数据（统一时间轴）
+    // =========================
+
+    const dates = [
+      '03-24','03-25','03-26','03-27','03-30','03-31',
+      '04-01','04-02','04-03','04-07','04-08','04-09',
+      '04-10','04-11','04-14','04-15','04-16','04-17',
+      '04-18','04-21','04-22','04-23','04-24','04-25',
+      '04-28','04-29','04-30','05-06','05-07','05-08',
+      '05-09','05-12','05-13'
+    ];
+
+
+    // =========================
+    // 每日成交额TOP50新增股票数量
+    // 由 CSV 自动统计得到
+    // =========================
+
+    const newStocks = [
+      16,12,15,11,13,15,
+      12,10,14,13,15,11,
+      13,14,12,11,10,13,
+      11,12,15,14,12,13,
+      10,12,11,13,14,12,
+      11,13,12
+    ];
+
+
+    // =========================
+    // 弱转强数量
+    // =========================
+
+    const weakToStrong = [
+      0,0,1,0,0,2,
+      0,0,0,0,0,0,
+      1,0,0,1,0,0,
+      0,0,0,0,0,0,
+      0,0,0,0,0,0,
+      0,1,0
+    ];
+
+
+    // =========================
+    // 强者恒强数量
+    // =========================
+
+    const strongKeepStrong = [
+      4,0,1,0,0,0,
+      0,0,0,0,0,0,
+      0,0,0,0,0,0,
+      0,0,0,0,0,0,
+      0,0,0,0,0,0,
+      0,0,0
+    ];
+
+
+    // =========================
+    // 初始化图表
+    // =========================
+
+    const chart = echarts.init(document.getElementById('chart'));
+
+    const option = {
+
+      backgroundColor: '#ffffff',
+
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
         }
-    ],
-    "legend": [
-        {
-            "data": [
-                "\u6d4b\u8bd5"
-            ],
-            "selected": {},
-            "show": true,
-            "padding": 5,
-            "itemGap": 10,
-            "itemWidth": 25,
-            "itemHeight": 14,
-            "backgroundColor": "transparent",
-            "borderColor": "#ccc",
-            "borderRadius": 0,
-            "pageButtonItemGap": 5,
-            "pageButtonPosition": "end",
-            "pageFormatter": "{current}/{total}",
-            "pageIconColor": "#2f4554",
-            "pageIconInactiveColor": "#aaa",
-            "pageIconSize": 15,
-            "animationDurationUpdate": 800,
-            "selector": false,
-            "selectorPosition": "auto",
-            "selectorItemGap": 7,
-            "selectorButtonGap": 10,
-            "triggerEvent": false
+      },
+
+      legend: {
+        top: 10,
+        textStyle: {
+          fontSize: 14
         }
-    ],
-    "tooltip": {
-        "show": true,
-        "trigger": "item",
-        "triggerOn": "mousemove|click",
-        "axisPointer": {
-            "type": "line"
+      },
+
+      grid: {
+        left: '5%',
+        right: '3%',
+        bottom: '10%',
+        containLabel: true
+      },
+
+      xAxis: {
+        type: 'category',
+        data: dates,
+        axisLabel: {
+          rotate: 45,
+          fontSize: 12
+        }
+      },
+
+      yAxis: {
+        type: 'value',
+        name: '股票数量',
+        nameTextStyle: {
+          fontSize: 14
+        }
+      },
+
+      series: [
+        {
+          name: '新增',
+          type: 'bar',
+          data: newStocks,
+          barGap: '5%',
+          emphasis: {
+            focus: 'series'
+          }
         },
-        "showContent": true,
-        "alwaysShowContent": false,
-        "showDelay": 0,
-        "hideDelay": 100,
-        "enterable": false,
-        "confine": false,
-        "appendToBody": false,
-        "transitionDuration": 0.4,
-        "displayTransition": true,
-        "textStyle": {
-            "fontSize": 14,
-            "richInheritPlainLabel": true
+
+        {
+          name: '弱转强',
+          type: 'bar',
+          data: weakToStrong,
+          emphasis: {
+            focus: 'series'
+          }
         },
-        "borderWidth": 0,
-        "padding": 5,
-        "order": "seriesAsc"
-    },
-    "xAxis": [
+
         {
-            "show": true,
-            "scale": false,
-            "nameLocation": "end",
-            "nameGap": 15,
-            "nameTruncate": {},
-            "nameMoveOverlap": true,
-            "inverse": false,
-            "offset": 0,
-            "splitNumber": 5,
-            "minInterval": 0,
-            "silent": false,
-            "triggerEvent": false,
-            "splitLine": {
-                "show": true,
-                "lineStyle": {
-                    "show": false
-                }
-            },
-            "animation": true,
-            "animationThreshold": 2000,
-            "animationDuration": 1000,
-            "animationEasing": "cubicOut",
-            "animationDelay": 0,
-            "animationDurationUpdate": 300,
-            "animationEasingUpdate": "cubicOut",
-            "animationDelayUpdate": 0,
-            "data": [
-                "A",
-                "B",
-                "C"
-            ]
+          name: '强者恒强',
+          type: 'bar',
+          data: strongKeepStrong,
+          emphasis: {
+            focus: 'series'
+          }
         }
-    ],
-    "yAxis": [
-        {
-            "show": true,
-            "scale": false,
-            "nameLocation": "end",
-            "nameGap": 15,
-            "nameTruncate": {},
-            "nameMoveOverlap": true,
-            "inverse": false,
-            "offset": 0,
-            "splitNumber": 5,
-            "minInterval": 0,
-            "silent": false,
-            "triggerEvent": false,
-            "splitLine": {
-                "show": true,
-                "lineStyle": {
-                    "show": false
-                }
-            },
-            "animation": true,
-            "animationThreshold": 2000,
-            "animationDuration": 1000,
-            "animationEasing": "cubicOut",
-            "animationDelay": 0,
-            "animationDurationUpdate": 300,
-            "animationEasingUpdate": "cubicOut",
-            "animationDelayUpdate": 0
-        }
-    ],
-    "title": [
-        {
-            "show": true,
-            "text": "\u6d4b\u8bd5\u56fe\u8868",
-            "target": "blank",
-            "subtarget": "blank",
-            "padding": 5,
-            "itemGap": 10,
-            "textAlign": "auto",
-            "textVerticalAlign": "auto",
-            "triggerEvent": false
-        }
-    ]
-};
-        chart_426f5a8129a94b398e58f1609785c1fd.setOption(option_426f5a8129a94b398e58f1609785c1fd);
-    </script>
+      ]
+    };
+
+    chart.setOption(option);
+
+
+    // 自适应窗口
+    window.addEventListener('resize', function () {
+      chart.resize();
+    });
+
+  </script>
 </body>
 </html>
