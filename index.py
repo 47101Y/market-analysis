@@ -50,7 +50,6 @@ result = pd.DataFrame({'date': all_dates})
 result = result.merge(new_count, on='date', how='left')
 result = result.merge(weak_count, on='date', how='left')
 result = result.merge(strong_count, on='date', how='left')
-
 result = result.fillna(0)
 
 # 柱状图
@@ -71,19 +70,20 @@ bar = (
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
         xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
         datazoom_opts=[opts.DataZoomOpts()],
-        legend_opts=opts.LegendOpts(pos_top='5%')
+        legend_opts=opts.LegendOpts(pos_top='10%')
     )
 )
+
+
+
+
 
 # =========================
 # 第二部分：行业热力图（行业出现次数）
 # =========================
 
-industry_total = pd.concat([
-    new_df[['industry']],
-    weak_df[['行业']].rename(columns={'行业':'industry'}),
-    strong_df[['行业']].rename(columns={'行业':'industry'})
-])
+industry_total =new_df[['industry']]
+
 
 industry_count = (
     industry_total['industry']
@@ -111,10 +111,17 @@ heat_bar = (
         ),
         xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
         visualmap_opts=opts.VisualMapOpts(
-            max_=int(industry_count['count'].max())
+            max_=int(industry_count['count'].max()),
+            pos_right="5%",   # 离右边 5%，往左挪，靠近主图
+            pos_top="middle"  # 垂直居中，和主图对齐
         )
     )
 )
+
+
+
+
+
 # =========================
 # 第三部分：行业轮动图（Timeline）
 # =========================
@@ -126,7 +133,7 @@ rotation_group = rotation_df.groupby(['date', 'industry']).size().reset_index(na
 
 # 时间轴
 timeline = Timeline(init_opts=opts.InitOpts(
-    width='1400px',
+    width='120px',
     height='700px',
     theme=ThemeType.DARK
 ))
@@ -163,17 +170,134 @@ timeline.add_schema(
     is_loop_play=False
 )
 
+
+
+
+
 # =========================
 # 页面组合
 # =========================
 
-page = Page(layout=Page.SimplePageLayout)
+html = f"""
+<!DOCTYPE html>
+<html>
 
-page.add(bar)
-page.add(heat_bar)
-page.add(timeline)
+<head>
+    <meta charset="UTF-8">
+    <title>市场分析Dashboard</title>
 
-# 输出网页
-page.render('index.html')
+    <script src="https://assets.pyecharts.org/assets/v5/echarts.min.js"></script>
 
-print('网页生成成功：index.html')
+    <style>
+
+        body {{
+            background-color: #111;
+            color: white;
+            font-family: Arial;
+        }}
+
+        .tab {{
+            overflow: hidden;
+            border-bottom: 1px solid #333;
+            background-color: #1b1b1b;
+            padding: 10px;
+        }}
+
+        .tab button {{
+            background-color: #222;
+            color: white;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 12px 18px;
+            margin-right: 10px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }}
+
+        .tab button:hover {{
+            background-color: #444;
+        }}
+
+        .tab button.active {{
+            background-color: #666;
+        }}
+
+        .chart-container {{
+            display: none;
+            padding: 20px;
+        }}
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="tab">
+
+    <button class="tablinks"
+        onclick="showChart(event, 'chart1')">
+        每日统计
+    </button>
+
+    <button class="tablinks"
+        onclick="showChart(event, 'chart2')">
+        行业热力
+    </button>
+
+    <button class="tablinks"
+        onclick="showChart(event, 'chart3')">
+        行业轮动
+    </button>
+
+</div>
+
+<div id="chart1" class="chart-container">
+    {bar.render_embed()}
+</div>
+
+<div id="chart2" class="chart-container">
+    {heat_bar.render_embed()}
+</div>
+
+<div id="chart3" class="chart-container">
+    {timeline.render_embed()}
+</div>
+
+<script>
+
+function showChart(evt, chartID) {{
+
+    let containers =
+        document.getElementsByClassName("chart-container");
+
+    for (let i = 0; i < containers.length; i++) {{
+        containers[i].style.display = "none";
+    }}
+
+    let tablinks =
+        document.getElementsByClassName("tablinks");
+
+    for (let i = 0; i < tablinks.length; i++) {{
+        tablinks[i].className =
+            tablinks[i].className.replace(" active", "");
+    }}
+
+    document.getElementById(chartID).style.display = "block";
+
+    evt.currentTarget.className += " active";
+}}
+
+// 默认显示第一页
+document.getElementById("chart1").style.display = "block";
+
+</script>
+
+</body>
+</html>
+"""
+# 写入文件，生成 index.html
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html)

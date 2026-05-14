@@ -1,4 +1,81 @@
+
 <!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>市场分析Dashboard</title>
+
+    <script src="https://assets.pyecharts.org/assets/v5/echarts.min.js"></script>
+
+    <style>
+
+        body {
+            background-color: #111;
+            color: white;
+            font-family: Arial;
+        }
+
+        .tab {
+            overflow: hidden;
+            border-bottom: 1px solid #333;
+            background-color: #1b1b1b;
+            padding: 10px;
+        }
+
+        .tab button {
+            background-color: #222;
+            color: white;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 12px 18px;
+            margin-right: 10px;
+            border-radius: 8px;
+            transition: 0.3s;
+        }
+
+        .tab button:hover {
+            background-color: #444;
+        }
+
+        .tab button.active {
+            background-color: #666;
+        }
+
+        .chart-container {
+            display: none;
+            padding: 20px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="tab">
+
+    <button class="tablinks"
+        onclick="showChart(event, 'chart1')">
+        每日统计
+    </button>
+
+    <button class="tablinks"
+        onclick="showChart(event, 'chart2')">
+        行业热力
+    </button>
+
+    <button class="tablinks"
+        onclick="showChart(event, 'chart3')">
+        行业轮动
+    </button>
+
+</div>
+
+<div id="chart1" class="chart-container">
+    <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
@@ -8,13 +85,11 @@
     
 </head>
 <body >
-    <style>.box { justify-content:center; display:flex; flex-wrap:wrap;  } </style>
-    <div class="box">
-                <div id="deb9e0a238b4483aade893a64861a1e9" class="chart-container" style="width:1400px; height:650px; "></div>
+    <div id="dd93af04c30e467fb01ef612615b78f6" class="chart-container" style="width:1400px; height:650px; "></div>
     <script>
-        var chart_deb9e0a238b4483aade893a64861a1e9 = echarts.init(
-            document.getElementById('deb9e0a238b4483aade893a64861a1e9'), 'dark', {renderer: 'canvas', locale: 'ZH'});
-        var option_deb9e0a238b4483aade893a64861a1e9 = {
+        var chart_dd93af04c30e467fb01ef612615b78f6 = echarts.init(
+            document.getElementById('dd93af04c30e467fb01ef612615b78f6'), 'dark', {renderer: 'canvas', locale: 'ZH'});
+        var option_dd93af04c30e467fb01ef612615b78f6 = {
     "animation": true,
     "animationThreshold": 2000,
     "animationDuration": 1000,
@@ -211,7 +286,7 @@
             ],
             "selected": {},
             "show": true,
-            "top": "5%",
+            "top": "10%",
             "padding": 5,
             "itemGap": 10,
             "itemWidth": 25,
@@ -385,13 +460,29 @@
         }
     ]
 };
-        chart_deb9e0a238b4483aade893a64861a1e9.setOption(option_deb9e0a238b4483aade893a64861a1e9);
+        chart_dd93af04c30e467fb01ef612615b78f6.setOption(option_dd93af04c30e467fb01ef612615b78f6);
     </script>
-<br/>                <div id="b9ea3d2ba31643a28e78d73457252085" class="chart-container" style="width:1400px; height:650px; "></div>
+</body>
+</html>
+
+</div>
+
+<div id="chart2" class="chart-container">
+    <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Awesome-pyecharts</title>
+                <script type="text/javascript" src="https://assets.pyecharts.org/assets/v6/echarts.min.js"></script>
+
+    
+</head>
+<body >
+    <div id="cff29000a4484217b808317ae278d027" class="chart-container" style="width:1400px; height:650px; "></div>
     <script>
-        var chart_b9ea3d2ba31643a28e78d73457252085 = echarts.init(
-            document.getElementById('b9ea3d2ba31643a28e78d73457252085'), 'dark', {renderer: 'canvas', locale: 'ZH'});
-        var option_b9ea3d2ba31643a28e78d73457252085 = {
+        var chart_cff29000a4484217b808317ae278d027 = echarts.init(
+            document.getElementById('cff29000a4484217b808317ae278d027'), 'dark', {renderer: 'canvas', locale: 'ZH'});
+        var option_cff29000a4484217b808317ae278d027 = {
     "animation": true,
     "animationThreshold": 2000,
     "animationDuration": 1000,
@@ -409,26 +500,26 @@
             "name": "\u51fa\u73b0\u6b21\u6570",
             "legendHoverLink": true,
             "data": [
-                109,
-                75,
+                91,
                 59,
-                48,
-                37,
-                25,
-                22,
-                19,
-                16,
+                47,
+                44,
+                32,
+                23,
+                20,
+                15,
                 14,
-                9,
+                13,
                 8,
-                8,
+                7,
+                7,
                 6,
-                6,
-                6,
+                5,
+                4,
                 4,
                 3,
                 3,
-                3,
+                2,
                 2,
                 2,
                 1,
@@ -558,13 +649,13 @@
                 "\u5bb6\u7528\u7535\u5668I",
                 "\u516c\u7528\u4e8b\u4e1aI",
                 "\u98df\u54c1\u996e\u6599I",
-                "\u6c7d\u8f66I",
-                "\u4f20\u5a92I",
                 "\u8f7b\u5de5\u5236\u9020I",
+                "\u6c7d\u8f66I",
                 "\u5efa\u7b51\u6750\u6599I",
+                "\u4f20\u5a92I",
                 "\u4ea4\u901a\u8fd0\u8f93I",
-                "\u519c\u6797\u7267\u6e14I",
                 "\u5efa\u7b51\u88c5\u9970I",
+                "\u519c\u6797\u7267\u6e14I",
                 "\u94f6\u884cI",
                 "\u94a2\u94c1I",
                 "\u7164\u70adI",
@@ -620,7 +711,7 @@
         "show": true,
         "type": "continuous",
         "min": 0,
-        "max": 109,
+        "max": 91,
         "inRange": {
             "color": [
                 "#50a3ba",
@@ -633,6 +724,8 @@
         "splitNumber": 5,
         "hoverLink": true,
         "orient": "vertical",
+        "top": "middle",
+        "right": "5%",
         "padding": 5,
         "showLabel": true,
         "itemWidth": 20,
@@ -640,13 +733,29 @@
         "borderWidth": 0
     }
 };
-        chart_b9ea3d2ba31643a28e78d73457252085.setOption(option_b9ea3d2ba31643a28e78d73457252085);
+        chart_cff29000a4484217b808317ae278d027.setOption(option_cff29000a4484217b808317ae278d027);
     </script>
-<br/>                <div id="d56d7d214c6f4ee6824265584439b194" class="chart-container" style="width:1400px; height:700px; "></div>
+</body>
+</html>
+
+</div>
+
+<div id="chart3" class="chart-container">
+    <!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Awesome-pyecharts</title>
+                <script type="text/javascript" src="https://assets.pyecharts.org/assets/v6/echarts.min.js"></script>
+
+    
+</head>
+<body >
+    <div id="37d40a418530424ea77eda4820ba4f1b" class="chart-container" style="width:120px; height:700px; "></div>
     <script>
-        var chart_d56d7d214c6f4ee6824265584439b194 = echarts.init(
-            document.getElementById('d56d7d214c6f4ee6824265584439b194'), 'dark', {renderer: 'canvas', locale: 'ZH'});
-        var option_d56d7d214c6f4ee6824265584439b194 = {
+        var chart_37d40a418530424ea77eda4820ba4f1b = echarts.init(
+            document.getElementById('37d40a418530424ea77eda4820ba4f1b'), 'dark', {renderer: 'canvas', locale: 'ZH'});
+        var option_37d40a418530424ea77eda4820ba4f1b = {
     "baseOption": {
         "series": [
             {
@@ -7168,10 +7277,41 @@
         }
     ]
 };
-        chart_d56d7d214c6f4ee6824265584439b194.setOption(option_d56d7d214c6f4ee6824265584439b194);
+        chart_37d40a418530424ea77eda4820ba4f1b.setOption(option_37d40a418530424ea77eda4820ba4f1b);
     </script>
-<br/>    </div>
-    <script>
-    </script>
+</body>
+</html>
+
+</div>
+
+<script>
+
+function showChart(evt, chartID) {
+
+    let containers =
+        document.getElementsByClassName("chart-container");
+
+    for (let i = 0; i < containers.length; i++) {
+        containers[i].style.display = "none";
+    }
+
+    let tablinks =
+        document.getElementsByClassName("tablinks");
+
+    for (let i = 0; i < tablinks.length; i++) {
+        tablinks[i].className =
+            tablinks[i].className.replace(" active", "");
+    }
+
+    document.getElementById(chartID).style.display = "block";
+
+    evt.currentTarget.className += " active";
+}
+
+// 默认显示第一页
+document.getElementById("chart1").style.display = "block";
+
+</script>
+
 </body>
 </html>
