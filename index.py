@@ -276,11 +276,15 @@ html = """
         display:none;
         text-align:center;
         padding:20px;
+        position:relative;
+        z-index:9999;
+        background:#111;
+        min-height:100vh;
     "
 >
 
     <img
-        src="new_heatmap.png"
+        src="./new_heatmap.png"
         style="
             max-width:95%;
             height:auto;
