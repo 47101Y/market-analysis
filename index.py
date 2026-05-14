@@ -97,8 +97,8 @@ industry_count.columns = ['industry', 'count']
 
 heat_bar = (
     Bar(init_opts=opts.InitOpts(
-        width='1400px',
-        height='650px',
+        width='1680px',
+        height='7800px',
         theme=ThemeType.DARK
     ))
     .add_xaxis(industry_count['industry'].tolist())
@@ -135,8 +135,8 @@ rotation_group = rotation_df.groupby(['date', 'industry']).size().reset_index(na
 
 # 时间轴
 timeline = Timeline(init_opts=opts.InitOpts(
-    width='1600px',
-    height='700px',
+    width='1680px',
+    height='780px',
     theme=ThemeType.DARK
 ))
 
@@ -241,34 +241,64 @@ html = """
     </style>
 </head>
 
+
 <body>
-
-
 <div class="tab">
 
     <button onclick="changePage('bar.html')">
-        每日统计
+        每日成交额TOP50新增个股统计
     </button>
 
     <button onclick="changePage('heat.html')">
-        行业热力
-    </button>
-
-    <button onclick="changePage('timeline.html')">
-        行业轮动
+        新增股票行业热力分析
     </button>
 
     <button onclick="showImage()">
-        图片分析
+        新增股票行业热力图
+    </button>
+
+    <button onclick="changePage('timeline.html')">
+        新增股票行业轮动
     </button>
 
 </div>
+
+<div
+    id="description"
+    style="
+        color:white;
+        padding:20px 30px;
+        font-size:16px;
+        line-height:1.8;
+        background:#1b1b1b;
+        border-bottom:1px solid #333;
+    "
+>
+
+    <h2 style="margin-top:0;">
+        每日成交额TOP50新增个股统计
+    </h2>
+
+    <p>
+        本模块统计每日进入两市成交额TOP50的新增个股数量，
+        并筛选出T+1日、T+2日仍留存的股票，然后分为两类：T日增跌幅<0,T+1日>0的股票（弱转强）；T日增跌幅>0,T+1日>0的股票（强者恒强）。
+    </p>
+
+    <p>
+        通过该指标可以观察市场风险偏好变化、
+        情绪周期切换以及资金抱团方向。
+    </p>
+
+</div>
+
 
 
 <iframe
     id="frame"
     src="bar.html">
 </iframe>
+
+
 
 <div
     id="imageBox"
@@ -286,7 +316,7 @@ html = """
     <img
         src="./new_heatmap.png"
         style="
-            max-width:95%;
+            max-width:65%;
             height:auto;
             border-radius:12px;
             box-shadow:0 0 20px rgba(255,255,255,0.15);
