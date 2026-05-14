@@ -67,7 +67,9 @@ bar = (
     .add_yaxis('强者恒强', result['强者恒强'].tolist())
     .set_global_opts(
         title_opts=opts.TitleOpts(
-            title='每日成交额TOP50统计'
+            title='每日成交额TOP50统计',
+            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
+
         ),
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
         xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
@@ -98,7 +100,7 @@ industry_count.columns = ['industry', 'count']
 heat_bar = (
     Bar(init_opts=opts.InitOpts(
         width='1680px',
-        height='7800px',
+        height='780px',
         theme=ThemeType.DARK
     ))
     .add_xaxis(industry_count['industry'].tolist())
