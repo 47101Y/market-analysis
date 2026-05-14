@@ -135,7 +135,7 @@ rotation_group = rotation_df.groupby(['date', 'industry']).size().reset_index(na
 
 # 时间轴
 timeline = Timeline(init_opts=opts.InitOpts(
-    width='1400px',
+    width='1600px',
     height='700px',
     theme=ThemeType.DARK
 ))
