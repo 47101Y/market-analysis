@@ -265,6 +265,9 @@ html = """
 
 </div>
 
+
+
+<!--
 <div
     id="description"
     style="
@@ -292,6 +295,8 @@ html = """
     </p>
 
 </div>
+-->
+
 
 
 
