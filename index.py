@@ -270,14 +270,22 @@ html = """
     src="bar.html">
 </iframe>
 
-<div id="imageBox" style="display:none;text-align:center;">
+<div
+    id="imageBox"
+    style="
+        display:none;
+        text-align:center;
+        padding:20px;
+    "
+>
 
     <img
-        src="新增个股行业热力图.png"
+        src="industry_heatmap.png"
         style="
-            width:90%;
-            margin-top:20px;
+            max-width:95%;
+            height:auto;
             border-radius:12px;
+            box-shadow:0 0 20px rgba(255,255,255,0.15);
         "
     >
 
