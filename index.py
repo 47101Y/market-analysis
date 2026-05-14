@@ -243,6 +243,7 @@ html = """
 
 <body>
 
+
 <div class="tab">
 
     <button onclick="changePage('bar.html')">
@@ -257,18 +258,48 @@ html = """
         行业轮动
     </button>
 
+    <button onclick="showImage()">
+        图片分析
+    </button>
+
 </div>
+
 
 <iframe
     id="frame"
     src="bar.html">
 </iframe>
 
+<div id="imageBox" style="display:none;text-align:center;">
+
+    <img
+        src="新增个股行业热力图.png"
+        style="
+            width:90%;
+            margin-top:20px;
+            border-radius:12px;
+        "
+    >
+
+</div>
+
 <script>
 
 function changePage(page){
 
+    document.getElementById("frame").style.display = "block";
+
+    document.getElementById("imageBox").style.display = "none";
+
     document.getElementById("frame").src = page;
+
+}
+
+function showImage(){
+
+    document.getElementById("frame").style.display = "none";
+
+    document.getElementById("imageBox").style.display = "block";
 
 }
 
