@@ -57,8 +57,8 @@ result = result.fillna(0)
 # 柱状图
 bar = (
     Bar(init_opts=opts.InitOpts(
-        width='1400px',
-        height='650px',
+        width='1680px',
+        height='780px',
         theme=ThemeType.DARK
     ))
     .add_xaxis(result['date'].tolist())
@@ -135,7 +135,7 @@ rotation_group = rotation_df.groupby(['date', 'industry']).size().reset_index(na
 
 # 时间轴
 timeline = Timeline(init_opts=opts.InitOpts(
-    width='120px',
+    width='1400px',
     height='700px',
     theme=ThemeType.DARK
 ))
