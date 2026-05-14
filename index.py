@@ -3,7 +3,9 @@ from pyecharts.charts import Bar, Pie, Timeline, Page
 from pyecharts import options as opts
 from pyecharts.globals import ThemeType
 from collections import defaultdict
+from pyecharts.globals import CurrentConfig
 
+CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 # =========================
 # 读取数据
 # =========================
@@ -178,7 +180,22 @@ timeline.add_schema(
 # 页面组合
 # =========================
 
-html = f"""
+# =========================
+# 分别生成三个图表页面
+# =========================
+
+bar.render("bar.html")
+
+heat_bar.render("heat.html")
+
+timeline.render("timeline.html")
+
+
+# =========================
+# 主页面
+# =========================
+
+html = """
 <!DOCTYPE html>
 <html>
 
@@ -186,118 +203,84 @@ html = f"""
     <meta charset="UTF-8">
     <title>市场分析Dashboard</title>
 
-    <script src="https://assets.pyecharts.org/assets/v5/echarts.min.js"></script>
-
     <style>
 
-        body {{
-            background-color: #111;
-            color: white;
-            font-family: Arial;
-        }}
+        body{
+            margin:0;
+            background:#111;
+            font-family:Arial;
+        }
 
-        .tab {{
-            overflow: hidden;
-            border-bottom: 1px solid #333;
-            background-color: #1b1b1b;
-            padding: 10px;
-        }}
+        .tab{
+            background:#1b1b1b;
+            padding:15px;
+        }
 
-        .tab button {{
-            background-color: #222;
-            color: white;
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 12px 18px;
-            margin-right: 10px;
-            border-radius: 8px;
-            transition: 0.3s;
-        }}
+        .tab button{
 
-        .tab button:hover {{
-            background-color: #444;
-        }}
+            background:#333;
+            color:white;
+            border:none;
+            padding:12px 20px;
+            margin-right:10px;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:15px;
+        }
 
-        .tab button.active {{
-            background-color: #666;
-        }}
+        .tab button:hover{
+            background:#555;
+        }
 
-        .chart-container {{
-            display: none;
-            padding: 20px;
-        }}
+        iframe{
+            width:100%;
+            height:900px;
+            border:none;
+        }
 
     </style>
-
 </head>
 
 <body>
 
 <div class="tab">
 
-    <button class="tablinks"
-        onclick="showChart(event, 'chart1')">
+    <button onclick="changePage('bar.html')">
         每日统计
     </button>
 
-    <button class="tablinks"
-        onclick="showChart(event, 'chart2')">
+    <button onclick="changePage('heat.html')">
         行业热力
     </button>
 
-    <button class="tablinks"
-        onclick="showChart(event, 'chart3')">
+    <button onclick="changePage('timeline.html')">
         行业轮动
     </button>
 
 </div>
 
-<div id="chart1" class="chart-container">
-    {bar.render_embed()}
-</div>
-
-<div id="chart2" class="chart-container">
-    {heat_bar.render_embed()}
-</div>
-
-<div id="chart3" class="chart-container">
-    {timeline.render_embed()}
-</div>
+<iframe
+    id="frame"
+    src="bar.html">
+</iframe>
 
 <script>
 
-function showChart(evt, chartID) {{
+function changePage(page){
 
-    let containers =
-        document.getElementsByClassName("chart-container");
+    document.getElementById("frame").src = page;
 
-    for (let i = 0; i < containers.length; i++) {{
-        containers[i].style.display = "none";
-    }}
-
-    let tablinks =
-        document.getElementsByClassName("tablinks");
-
-    for (let i = 0; i < tablinks.length; i++) {{
-        tablinks[i].className =
-            tablinks[i].className.replace(" active", "");
-    }}
-
-    document.getElementById(chartID).style.display = "block";
-
-    evt.currentTarget.className += " active";
-}}
-
-// 默认显示第一页
-document.getElementById("chart1").style.display = "block";
+}
 
 </script>
 
 </body>
 </html>
 """
-# 写入文件，生成 index.html
+
+# 生成主页面
+
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html)
+
+print("Dashboard 生成完成！")
