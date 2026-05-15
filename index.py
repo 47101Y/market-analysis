@@ -550,13 +550,7 @@ function showImage(){
     document.getElementById("detailPanel").style.display = "none";
 
 }
-// 页面初始化
 
-window.onload = function(){
-
-    document.getElementById("detailPanel").style.display = "block";
-
-}
 
 </script>
 
