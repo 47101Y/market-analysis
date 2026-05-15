@@ -70,6 +70,37 @@ T+2日涨跌幅：{row['T+2日涨跌幅']}
 
 
 
+# =========================
+# 新增股票详情字典
+# =========================
+
+new_detail = defaultdict(list)
+
+for _, row in new_df.iterrows():
+
+    date = row['date']
+
+    stock_info = f"""
+    股票代码：{row['stock']}
+    名称：{row['name']}
+    行业：{row['industry']}
+    成交金额（亿）：{row['amount']}
+
+    T日收盘价：{row['close']}
+    T-1日收盘价：{row['pre_close']}
+
+    T日涨跌幅：{row['pct']}
+
+    T+1日是否留存TOP50：{'是' if row['day2_in_top50'] else '否'}
+    T+2日是否留存TOP50：{'是' if row['day3_in_top50'] else '否'}
+
+    T+1日涨跌幅：{row['day2_pct']}
+    T+2日涨跌幅：{row['day3_pct']}
+    """
+    new_detail[date].append(stock_info)
+
+
+
 
 # =========================
 # 第一部分：每日统计柱状图
@@ -141,11 +172,35 @@ var strongData = {dict(strong_detail)};
 
 var weakData = {dict(weak_detail)};
 
+var newData = {dict(new_detail)};
+
 chart_{bar.chart_id}.on('click', function(params) {{
 
     var date = params.name;
 
     var content = "";
+
+    // =====================
+    // 新增股票
+    // =====================
+
+    if(params.seriesName === '新增'){{
+
+        var stocks = newData[date];
+
+        if(stocks){{
+
+            content =
+                "【" + date + " 新增股票】\\n\\n"
+                + stocks.join("\\n========================\\n");
+
+        }} else {{
+
+            content = "无数据";
+
+        }}
+
+    }}
 
     // =====================
     // 强者恒强
@@ -191,12 +246,14 @@ chart_{bar.chart_id}.on('click', function(params) {{
 
     }}
 
-    // 写入右侧详情框
+    // 写入详情框
     parent.document.getElementById("detailContent").innerText = content;
 
 }});
 
 """)
+
+
 
 
 
