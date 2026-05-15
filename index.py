@@ -358,7 +358,7 @@ html = """
 
     .main-container{
 
-        display:flex;
+        position:relative;
 
         width:100%;
 
@@ -367,7 +367,7 @@ html = """
 
     iframe{
 
-        width:75%;
+        width:100%;
 
         height:100%;
 
@@ -376,7 +376,17 @@ html = """
 
     #detailPanel{
 
-        width:25%;
+        display:none;
+
+        position:absolute;
+
+        top:0;
+
+        right:0;
+
+        width:360px;
+
+        height:100%;
 
         background:#1b1b1b;
 
@@ -387,24 +397,11 @@ html = """
         overflow-y:auto;
 
         border-left:1px solid #333;
+
+        box-sizing:border-box;
+
+        z-index:999;
     }
-
-    #detailPanel h2{
-
-        margin-top:0;
-
-        color:#ffd54f;
-    }
-
-    #detailContent{
-
-        white-space:pre-wrap;
-
-        line-height:1.8;
-
-        font-size:14px;
-    }
-
     </style>
 </head>
 
@@ -521,27 +518,19 @@ function changePage(page){
 
     document.getElementById("frame").src = page;
 
-    // =========================
-    // bar 页面显示详情栏
-    // =========================
+    // 只有 bar 页面显示详情栏
 
     if(page === "bar.html"){
 
         document.getElementById("detailPanel").style.display = "block";
 
-        document.getElementById("frame").style.width = "75%";
-
     }
 
-    // =========================
-    // 其它页面隐藏详情栏
-    // =========================
+    // 其它页面隐藏
 
     else{
 
         document.getElementById("detailPanel").style.display = "none";
-
-        document.getElementById("frame").style.width = "100%";
 
     }
 
@@ -555,6 +544,13 @@ function showImage(){
     document.getElementById("imageBox").style.display = "block";
 
     document.getElementById("detailPanel").style.display = "none";
+
+}
+// 页面初始化
+
+window.onload = function(){
+
+    document.getElementById("detailPanel").style.display = "block";
 
 }
 
