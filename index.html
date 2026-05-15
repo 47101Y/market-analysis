@@ -143,7 +143,9 @@
 
 
 
-<div class="main-container">
+<div class="main-container"
+            id="mainContainer"
+>
 
     <iframe
         id="frame"
@@ -196,46 +198,42 @@
 
 
 <script>
-
-// 全局保存 iframe 原始容器
-let iframeContainer = null;
-
 function changePage(page){
-    // 如果 iframe 被删掉了，重新创建放回去
-    if (!document.getElementById("frame")) {
-        let iframe = document.createElement("iframe");
-        iframe.id = "frame";
-        iframe.style.width = "100%";
-        iframe.style.height = "100%";
-        iframe.style.border = "none";
-        // 插回 main-container 最前面
-        document.querySelector(".main-container").prepend(iframe);
-    }
 
-    // 显示iframe，隐藏图片盒子
-    document.getElementById("frame").style.display = "block";
+    // 显示主图区域
+    document.getElementById("mainContainer").style.display = "block";
+
+    // 隐藏图片
     document.getElementById("imageBox").style.display = "none";
+
+    // 切换 iframe
     document.getElementById("frame").src = page;
 
-    // 详情面板控制
+    // bar 页面显示详情
     if(page === "bar.html"){
+
         document.getElementById("detailPanel").style.display = "block";
-    }else{
-        document.getElementById("detailPanel").style.display = "none";
+
     }
+
+    // 其它页面隐藏详情
+    else{
+
+        document.getElementById("detailPanel").style.display = "none";
+
+    }
+
 }
 
 
 function showImage(){
-    // 直接彻底移除 iframe 标签（不是隐藏，是删掉）
-    let frame = document.getElementById("frame");
-    if (frame) {
-        frame.remove();
-    }
 
-    // 显示图片盒子
+    // 整个主图区域消失
+    document.getElementById("mainContainer").style.display = "none";
+
+    // 显示热力图
     document.getElementById("imageBox").style.display = "flex";
-    document.getElementById("detailPanel").style.display = "none";
+
 }
 
 
