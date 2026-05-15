@@ -487,18 +487,14 @@ html = """
     id="imageBox"
     style="
         display:none;
-
         width:100%;
         height:900px;
-
         background:#111;
-
+        /* 这里的display:flex要写在单独的style里，不要和display:none混写 */
         display:flex;
         justify-content:center;
-        align-items:flex-start;
-
-        padding-top:20px;
-
+        align-items:center; /* 改成居中对齐，让图片在容器里垂直居中 */
+        padding:20px;
         box-sizing:border-box;
     "
 >
@@ -506,15 +502,15 @@ html = """
         src="./new_heatmap.png"
         style="
             max-width:90%;
-            max-height:850px;
-
+            max-height:800px; /* 限制最大高度，避免撑破容器 */
             height:auto;
-
             border-radius:12px;
             box-shadow:0 0 20px rgba(255,255,255,0.15);
         "
     >
 </div>
+
+
 
 <script>
 
@@ -549,7 +545,7 @@ function showImage(){
 
     document.getElementById("frame").style.display = "none";
 
-    document.getElementById("imageBox").style.display = "block";
+    document.getElementById("imageBox").style.display = "flex";
 
     document.getElementById("detailPanel").style.display = "none";
 
