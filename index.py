@@ -482,30 +482,32 @@ html = """
 </div>
 
 
-
+<!-- 放图片 -->
 <div
     id="imageBox"
     style="
         display:none;
-        text-align:center;
-        padding:20px;
-        position:relative;
-        z-index:9999;
+        width:100%;
+        height:900px;
+
         background:#111;
-        min-height:100vh;
+
+        display:flex;
+        justify-content:center;
+        align-items:center;
     "
 >
-
     <img
         src="./new_heatmap.png"
         style="
-            max-width:65%;
-            height:auto;
+            max-width:90%;
+            max-height:90%;
+
             border-radius:12px;
+
             box-shadow:0 0 20px rgba(255,255,255,0.15);
         "
     >
-
 </div>
 
 <script>
@@ -555,6 +557,7 @@ window.onload = function(){
 }
 
 </script>
+
 
 </body>
 </html>
