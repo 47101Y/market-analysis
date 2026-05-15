@@ -202,13 +202,40 @@ function changePage(page){
 
     document.getElementById("frame").src = page;
 
+    // =========================
+    // bar 页面显示详情栏
+    // =========================
+
+    if(page === "bar.html"){
+
+        document.getElementById("detailPanel").style.display = "block";
+
+        document.getElementById("frame").style.width = "75%";
+
+    }
+
+    // =========================
+    // 其它页面隐藏详情栏
+    // =========================
+
+    else{
+
+        document.getElementById("detailPanel").style.display = "none";
+
+        document.getElementById("frame").style.width = "100%";
+
+    }
+
 }
+
 
 function showImage(){
 
     document.getElementById("frame").style.display = "none";
 
     document.getElementById("imageBox").style.display = "block";
+
+    document.getElementById("detailPanel").style.display = "none";
 
 }
 

@@ -14,6 +14,8 @@ new_df = pd.read_csv('每日成交额TOP50新增股票.csv')
 weak_df = pd.read_csv('弱转强.csv')
 strong_df = pd.read_csv('强者恒强.csv')
 
+# print(new_df.columns.tolist())
+
 # =========================
 #弱转强详情字典
 # =========================
@@ -519,13 +521,40 @@ function changePage(page){
 
     document.getElementById("frame").src = page;
 
+    // =========================
+    // bar 页面显示详情栏
+    // =========================
+
+    if(page === "bar.html"){
+
+        document.getElementById("detailPanel").style.display = "block";
+
+        document.getElementById("frame").style.width = "75%";
+
+    }
+
+    // =========================
+    // 其它页面隐藏详情栏
+    // =========================
+
+    else{
+
+        document.getElementById("detailPanel").style.display = "none";
+
+        document.getElementById("frame").style.width = "100%";
+
+    }
+
 }
+
 
 function showImage(){
 
     document.getElementById("frame").style.display = "none";
 
     document.getElementById("imageBox").style.display = "block";
+
+    document.getElementById("detailPanel").style.display = "none";
 
 }
 
