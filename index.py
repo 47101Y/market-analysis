@@ -16,14 +16,6 @@ weak_df = pd.read_csv('弱转强.csv')
 strong_df = pd.read_csv('强者恒强.csv')
 
 
-
-# 按日期分组，转成字典：{日期: [个股列表]}
-strong_data_dict = strong_df.groupby('日期').apply(
-    lambda x: x.to_dict('records')
-).to_dict()
-# 转成JSON字符串
-strong_data_json = json.dumps(strong_data_dict, ensure_ascii=False)
-
 # =========================
 # 第一部分：每日统计柱状图
 # =========================
@@ -88,23 +80,6 @@ bar = (
         datazoom_opts=[opts.DataZoomOpts()],
         legend_opts=opts.LegendOpts(pos_top='10%')
     )
-    .add_js_funcs("""
-        chart.on('click', function(params) {
-            if (params.seriesName === '强者恒强') {
-                var date = params.name;
-                var stocks = strongStockData[date];
-                if (!stocks || stocks.length === 0) {
-                    showModal(date + ' 提示', '当日没有强者恒强股票');
-                    return;
-                }
-                var info = '';
-                stocks.forEach(stock => {
-                    info += `代码：${stock['代码']} | 名称：${stock['名称']} | 涨幅：${stock['涨跌幅']}%\n`;
-                });
-                showModal(date + ' 强者恒强个股列表', info);
-            }
-        });
-    """)
 )
 
 
@@ -360,10 +335,6 @@ html = """
 
 </div>
 
-<script>
-// 【新增】预存强者恒强数据
-const strongStockData = {{ strong_data_json|safe }};
-</script>
 
 function changePage(page){
 
@@ -390,9 +361,6 @@ function showImage(){
 """
 
 # 生成主页面
-
-# 把HTML里的占位符替换成真实JSON
-html = html.replace("{{ strong_data_json|safe }}", strong_data_json)
 
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html)
