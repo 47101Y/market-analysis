@@ -487,13 +487,15 @@ html = """
     id="imageBox"
     style="
         display:none;
+
         width:100%;
         height:900px;
+
         background:#111;
-        /* 这里的display:flex要写在单独的style里，不要和display:none混写 */
-        display:flex;
+
         justify-content:center;
-        align-items:center; /* 改成居中对齐，让图片在容器里垂直居中 */
+        align-items:center;
+
         padding:20px;
         box-sizing:border-box;
     "
