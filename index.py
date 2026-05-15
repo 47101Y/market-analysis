@@ -143,6 +143,8 @@ chart_{bar.chart_id}.on('click', function(params) {{
 
     var date = params.name;
 
+    var content = "";
+
     // =====================
     // 强者恒强
     // =====================
@@ -153,14 +155,13 @@ chart_{bar.chart_id}.on('click', function(params) {{
 
         if(stocks){{
 
-            alert(
+            content =
                 "【" + date + " 强者恒强股票】\\n\\n"
-                + stocks.join("\\n========================\\n")
-            );
+                + stocks.join("\\n========================\\n");
 
         }} else {{
 
-            alert("无数据");
+            content = "无数据";
 
         }}
 
@@ -176,18 +177,20 @@ chart_{bar.chart_id}.on('click', function(params) {{
 
         if(stocks){{
 
-            alert(
+            content =
                 "【" + date + " 弱转强股票】\\n\\n"
-                + stocks.join("\\n========================\\n")
-            );
+                + stocks.join("\\n========================\\n");
 
         }} else {{
 
-            alert("无数据");
+            content = "无数据";
 
         }}
 
     }}
+
+    // 写入右侧详情框
+    parent.document.getElementById("detailContent").innerText = content;
 
 }});
 
@@ -322,38 +325,83 @@ html = """
 
     <style>
 
-        body{
-            margin:0;
-            background:#111;
-            font-family:Arial;
-        }
+    body{
+        margin:0;
+        background:#111;
+        font-family:Arial;
+    }
 
-        .tab{
-            background:#1b1b1b;
-            padding:15px;
-        }
+    .tab{
+        background:#1b1b1b;
+        padding:15px;
+    }
 
-        .tab button{
+    .tab button{
 
-            background:#333;
-            color:white;
-            border:none;
-            padding:12px 20px;
-            margin-right:10px;
-            border-radius:8px;
-            cursor:pointer;
-            font-size:15px;
-        }
+        background:#333;
+        color:white;
+        border:none;
+        padding:12px 20px;
+        margin-right:10px;
+        border-radius:8px;
+        cursor:pointer;
+        font-size:15px;
+    }
 
-        .tab button:hover{
-            background:#555;
-        }
+    .tab button:hover{
+        background:#555;
+    }
 
-        iframe{
-            width:100%;
-            height:900px;
-            border:none;
-        }
+    /* 新增：左右布局 */
+
+    .main-container{
+
+        display:flex;
+
+        width:100%;
+
+        height:900px;
+    }
+
+    iframe{
+
+        width:75%;
+
+        height:100%;
+
+        border:none;
+    }
+
+    #detailPanel{
+
+        width:25%;
+
+        background:#1b1b1b;
+
+        color:white;
+
+        padding:20px;
+
+        overflow-y:auto;
+
+        border-left:1px solid #333;
+    }
+
+    #detailPanel h2{
+
+        margin-top:0;
+
+        color:#ffd54f;
+    }
+
+    #detailContent{
+
+        white-space:pre-wrap;
+
+        line-height:1.8;
+
+        font-size:14px;
+    }
 
     </style>
 </head>
@@ -415,10 +463,24 @@ html = """
 
 
 
-<iframe
-    id="frame"
-    src="bar.html">
-</iframe>
+<div class="main-container">
+
+    <iframe
+        id="frame"
+        src="bar.html">
+    </iframe>
+
+    <div id="detailPanel">
+
+        <h2>股票详情</h2>
+
+        <div id="detailContent">
+            点击柱体查看详情
+        </div>
+
+    </div>
+
+</div>
 
 
 
