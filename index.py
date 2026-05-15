@@ -14,6 +14,42 @@ new_df = pd.read_csv('每日成交额TOP50新增股票.csv')
 weak_df = pd.read_csv('弱转强.csv')
 strong_df = pd.read_csv('强者恒强.csv')
 
+
+
+
+# =========================
+# 强者恒强详情字典
+# =========================
+
+# =========================
+# 强者恒强详情字典
+# =========================
+
+strong_detail = defaultdict(list)
+
+for _, row in strong_df.iterrows():
+
+    date = row['日期']
+
+    stock_info = f"""
+股票代码：{row['股票代码']}
+名称：{row['名称']}
+行业：{row['行业']}
+成交金额（亿）：{row['成交金额（亿）']}
+
+T日收盘价：{row['T日收盘价']}
+T-1日收盘价：{row['T-1日收盘价']}
+
+T日涨跌幅：{row['T日涨跌幅']}
+T+1日涨跌幅：{row['T+1日涨跌幅']}
+T+2日涨跌幅：{row['T+2日涨跌幅']}
+"""
+
+    strong_detail[date].append(stock_info)
+
+
+
+
 # =========================
 # 第一部分：每日统计柱状图
 # =========================
@@ -77,6 +113,37 @@ bar = (
         legend_opts=opts.LegendOpts(pos_top='10%')
     )
 )
+
+bar.add_js_funcs(f"""
+
+var strongData = {dict(strong_detail)};
+
+chart_{bar.chart_id}.on('click', function(params) {{
+
+    if(params.seriesName === '强者恒强'){{
+
+        var date = params.name;
+
+        var stocks = strongData[date];
+
+        if(stocks){{
+
+            alert(
+                "【" + date + " 强者恒强股票】\\n\\n"
+                + stocks.join("\\n========================\\n")
+            );
+
+        }} else {{
+
+            alert("无数据");
+
+        }}
+
+    }}
+
+}});
+
+""")
 
 
 
