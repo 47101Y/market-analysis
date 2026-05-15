@@ -4,7 +4,6 @@ from pyecharts import options as opts
 from pyecharts.globals import ThemeType
 from collections import defaultdict
 from pyecharts.globals import CurrentConfig
-import json
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 # =========================
@@ -14,7 +13,6 @@ CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 new_df = pd.read_csv('每日成交额TOP50新增股票.csv')
 weak_df = pd.read_csv('弱转强.csv')
 strong_df = pd.read_csv('强者恒强.csv')
-
 
 # =========================
 # 第一部分：每日统计柱状图
@@ -56,8 +54,6 @@ result = result.merge(weak_count, on='date', how='left')
 result = result.merge(strong_count, on='date', how='left')
 result = result.fillna(0)
 
-
-
 # 柱状图
 bar = (
     Bar(init_opts=opts.InitOpts(
@@ -81,6 +77,7 @@ bar = (
         legend_opts=opts.LegendOpts(pos_top='10%')
     )
 )
+
 
 
 
@@ -335,6 +332,7 @@ html = """
 
 </div>
 
+<script>
 
 function changePage(page){
 
