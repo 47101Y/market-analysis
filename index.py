@@ -376,7 +376,7 @@ html = """
 
     #detailPanel{
 
-        display:none;
+        display:block;
 
         position:absolute;
 
