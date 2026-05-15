@@ -197,41 +197,45 @@
 
 <script>
 
+// 全局保存 iframe 原始容器
+let iframeContainer = null;
+
 function changePage(page){
+    // 如果 iframe 被删掉了，重新创建放回去
+    if (!document.getElementById("frame")) {
+        let iframe = document.createElement("iframe");
+        iframe.id = "frame";
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        // 插回 main-container 最前面
+        document.querySelector(".main-container").prepend(iframe);
+    }
 
+    // 显示iframe，隐藏图片盒子
     document.getElementById("frame").style.display = "block";
-
     document.getElementById("imageBox").style.display = "none";
-
     document.getElementById("frame").src = page;
 
-    // 只有 bar 页面显示详情栏
-
+    // 详情面板控制
     if(page === "bar.html"){
-
         document.getElementById("detailPanel").style.display = "block";
-
-    }
-
-    // 其它页面隐藏
-
-    else{
-
+    }else{
         document.getElementById("detailPanel").style.display = "none";
-
     }
-
 }
 
 
 function showImage(){
+    // 直接彻底移除 iframe 标签（不是隐藏，是删掉）
+    let frame = document.getElementById("frame");
+    if (frame) {
+        frame.remove();
+    }
 
-    document.getElementById("frame").style.display = "none";
-
+    // 显示图片盒子
     document.getElementById("imageBox").style.display = "flex";
-
     document.getElementById("detailPanel").style.display = "none";
-
 }
 
 
