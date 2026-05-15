@@ -494,7 +494,7 @@ html = """
         background:#111;
 
         justify-content:center;
-        align-items:center;
+        align-items:flex-star;
 
         padding:20px;
         box-sizing:border-box;
