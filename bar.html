@@ -8,11 +8,29 @@
     
 </head>
 <body >
-    <div id="0c6626975578493aa6c7b3346b4448ad" class="chart-container" style="width:1680px; height:780px; "></div>
+    <div id="10df7db700224f0db30a4150feb1c335" class="chart-container" style="width:1680px; height:780px; "></div>
     <script>
-        var chart_0c6626975578493aa6c7b3346b4448ad = echarts.init(
-            document.getElementById('0c6626975578493aa6c7b3346b4448ad'), 'dark', {renderer: 'canvas', locale: 'ZH'});
-        var option_0c6626975578493aa6c7b3346b4448ad = {
+        var chart_10df7db700224f0db30a4150feb1c335 = echarts.init(
+            document.getElementById('10df7db700224f0db30a4150feb1c335'), 'dark', {renderer: 'canvas', locale: 'ZH'});
+            
+        chart.on('click', function(params) {
+            if (params.seriesName === '强者恒强') {
+                var date = params.name;
+                var stocks = strongStockData[date];
+                if (!stocks || stocks.length === 0) {
+                    showModal(date + ' 提示', '当日没有强者恒强股票');
+                    return;
+                }
+                var info = '';
+                stocks.forEach(stock => {
+                    info += `代码：${stock['代码']} | 名称：${stock['名称']} | 涨幅：${stock['涨跌幅']}%
+`;
+                });
+                showModal(date + ' 强者恒强个股列表', info);
+            }
+        });
+    
+        var option_10df7db700224f0db30a4150feb1c335 = {
     "animation": true,
     "animationThreshold": 2000,
     "animationDuration": 1000,
@@ -384,7 +402,7 @@
         }
     ]
 };
-        chart_0c6626975578493aa6c7b3346b4448ad.setOption(option_0c6626975578493aa6c7b3346b4448ad);
+        chart_10df7db700224f0db30a4150feb1c335.setOption(option_10df7db700224f0db30a4150feb1c335);
     </script>
 </body>
 </html>
