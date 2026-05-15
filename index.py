@@ -487,6 +487,7 @@ html = """
     id="imageBox"
     style="
         display:none;
+
         width:100%;
         height:900px;
 
@@ -494,17 +495,22 @@ html = """
 
         display:flex;
         justify-content:center;
-        align-items:center;
+        align-items:flex-start;
+
+        padding-top:20px;
+
+        box-sizing:border-box;
     "
 >
     <img
         src="./new_heatmap.png"
         style="
             max-width:90%;
-            max-height:90%;
+            max-height:850px;
+
+            height:auto;
 
             border-radius:12px;
-
             box-shadow:0 0 20px rgba(255,255,255,0.15);
         "
     >
