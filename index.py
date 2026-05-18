@@ -17,6 +17,7 @@ weak_df = pd.read_csv('弱转强.csv')
 strong_df = pd.read_csv('强者恒强.csv')
 future_df = pd.read_csv('new_stock_future_10days.csv')
 
+
 # =========================
 # 未来10日走势数据
 # =========================
@@ -33,7 +34,9 @@ for (d, stock), group in future_df.groupby(['add_date', 'stock']):
 
         'open': group['open'].tolist(),
 
-        'close': group['close'].tolist()
+        'close': group['close'].tolist(),
+
+        'pct': ((group['close'] - group['open']) / group['open']).round(2).tolist()
     }
 
 
@@ -49,18 +52,18 @@ for _, row in weak_df.iterrows():
     date = row['日期']
 
     stock_info = f"""
-股票代码：{row['股票代码']}
-名称：{row['名称']}
-行业：{row['行业']}
-成交金额（亿）：{row['成交金额（亿）']}
+                    股票代码：{row['股票代码']}
+                    名称：{row['名称']}
+                    行业：{row['行业']}
+                    成交金额（亿）：{row['成交金额（亿）']}
 
-T日收盘价：{row['T日收盘价']}
-T-1日收盘价：{row['T-1日收盘价']}
+                    T日收盘价：{row['T日收盘价']}
+                    T-1日收盘价：{row['T-1日收盘价']}
 
-T日涨跌幅：{row['T日涨跌幅']}
-T+1日涨跌幅：{row['T+1日涨跌幅']}
-T+2日涨跌幅：{row['T+2日涨跌幅']}
-"""
+                    T日涨跌幅：{row['T日涨跌幅']}
+                    T+1日涨跌幅：{row['T+1日涨跌幅']}
+                    T+2日涨跌幅：{row['T+2日涨跌幅']}
+    """
 
     weak_detail[date].append(stock_info)
 
@@ -75,18 +78,18 @@ for _, row in strong_df.iterrows():
     date = row['日期']
 
     stock_info = f"""
-股票代码：{row['股票代码']}
-名称：{row['名称']}
-行业：{row['行业']}
-成交金额（亿）：{row['成交金额（亿）']}
+                    股票代码：{row['股票代码']}
+                    名称：{row['名称']}
+                    行业：{row['行业']}
+                    成交金额（亿）：{row['成交金额（亿）']}
 
-T日收盘价：{row['T日收盘价']}
-T-1日收盘价：{row['T-1日收盘价']}
+                    T日收盘价：{row['T日收盘价']}
+                    T-1日收盘价：{row['T-1日收盘价']}
 
-T日涨跌幅：{row['T日涨跌幅']}
-T+1日涨跌幅：{row['T+1日涨跌幅']}
-T+2日涨跌幅：{row['T+2日涨跌幅']}
-"""
+                    T日涨跌幅：{row['T日涨跌幅']}
+                    T+1日涨跌幅：{row['T+1日涨跌幅']}
+                    T+2日涨跌幅：{row['T+2日涨跌幅']}
+    """
 
     strong_detail[date].append(stock_info)
 
@@ -103,21 +106,21 @@ for _, row in new_df.iterrows():
     date = row['date']
 
     stock_info = f"""
-    股票代码：{row['stock']}
-    名称：{row['name']}
-    行业：{row['industry']}
-    成交金额（亿）：{row['amount']}
+                    股票代码：{row['stock']}
+                    名称：{row['name']}
+                    行业：{row['industry']}
+                    成交金额（亿）：{row['amount']}
 
-    T日收盘价：{row['close']}
-    T-1日收盘价：{row['pre_close']}
+                    T日收盘价：{row['close']}
+                    T-1日收盘价：{row['pre_close']}
 
-    T日涨跌幅：{row['pct']}
+                    T日涨跌幅：{row['pct']}
 
-    T+1日是否留存TOP50：{'是' if row['day2_in_top50'] else '否'}
-    T+2日是否留存TOP50：{'是' if row['day3_in_top50'] else '否'}
+                    T+1日是否留存TOP50：{'是' if row['day2_in_top50'] else '否'}
+                    T+2日是否留存TOP50：{'是' if row['day3_in_top50'] else '否'}
 
-    T+1日涨跌幅：{row['day2_pct']}
-    T+2日涨跌幅：{row['day3_pct']}
+                    T+1日涨跌幅：{row['day2_pct']}
+                    T+2日涨跌幅：{row['day3_pct']}
     """
     new_detail[date].append({
 
@@ -163,12 +166,14 @@ all_dates = sorted(list(set(
     + weak_count['date'].tolist()
     + strong_count['date'].tolist()
 )))
-result = pd.DataFrame({'date': all_dates})
 
+#创建新df
+result = pd.DataFrame({'date': all_dates})
 result = result.merge(new_count, on='date', how='left')
 result = result.merge(weak_count, on='date', how='left')
 result = result.merge(strong_count, on='date', how='left')
 result = result.fillna(0)
+
 
 # 柱状图
 bar = (
@@ -184,8 +189,8 @@ bar = (
     .set_global_opts(
         title_opts=opts.TitleOpts(
             title='每日成交额TOP50统计',
-            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
-
+            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,' \
+            '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
         ),
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
         xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
@@ -343,7 +348,7 @@ heat_bar = (
     ))
     .add_xaxis(industry_count['industry'].tolist())
     .add_yaxis(
-        '出现次数',
+        '新增成交额TOP50股票行业总计出现次数',
         industry_count['count'].tolist(),
         category_gap='40%'
     )
@@ -398,7 +403,9 @@ for d in sorted(rotation_group['date'].unique()):
                 axislabel_opts=opts.LabelOpts(rotate=45)
             ),
             visualmap_opts=opts.VisualMapOpts(
-                max_=int(temp['count'].max())
+                max_=int(temp['count'].max()),
+                pos_right="5%",   # 离右边 5%，往左挪，靠近主图
+                pos_top="middle"  # 垂直居中，和主图对齐
             )
         )
     )
@@ -407,7 +414,7 @@ for d in sorted(rotation_group['date'].unique()):
 
 # 自动播放
 timeline.add_schema(
-    play_interval=1200,
+    play_interval=1400,
     is_auto_play=True,
     is_loop_play=False
 )
@@ -549,41 +556,9 @@ html = """
 
 
 
-<!--
-<div
-    id="description"
-    style="
-        color:white;
-        padding:20px 30px;
-        font-size:16px;
-        line-height:1.8;
-        background:#1b1b1b;
-        border-bottom:1px solid #333;
-    "
->
-
-    <h2 style="margin-top:0;">
-        每日成交额TOP50新增个股统计
-    </h2>
-
-    <p>
-        本模块统计每日进入两市成交额TOP50的新增个股数量，
-        并筛选出T+1日、T+2日仍留存的股票，然后分为两类：T日增跌幅<0,T+1日>0的股票（弱转强）；T日增跌幅>0,T+1日>0的股票（强者恒强）。
-    </p>
-
-    <p>
-        通过该指标可以观察市场风险偏好变化、
-        情绪周期切换以及资金抱团方向。
-    </p>
-
-</div>
--->
-
-
-
 
 <div class="main-container"
-            id="mainContainer"
+     id="mainContainer"
 >
 
     <iframe
@@ -593,6 +568,7 @@ html = """
 
 </div>
 
+<!-- 未来走势区域 -->
 <div id="futureChartArea"></div>
 
 
@@ -640,6 +616,24 @@ function changePage(page){
 
     // 切换 iframe
     document.getElementById("frame").src = page;
+
+    // ======================
+    // 控制 futureChartArea
+    // ======================
+
+    // bar 页面显示
+    if(page === "bar.html"){
+
+        document.getElementById("futureChartArea").style.display = "flex";
+
+    }
+
+    // 其它页面隐藏
+    else{
+
+        document.getElementById("futureChartArea").style.display = "none";
+
+    }
 
 }
 

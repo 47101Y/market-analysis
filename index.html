@@ -112,41 +112,9 @@
 
 
 
-<!--
-<div
-    id="description"
-    style="
-        color:white;
-        padding:20px 30px;
-        font-size:16px;
-        line-height:1.8;
-        background:#1b1b1b;
-        border-bottom:1px solid #333;
-    "
->
-
-    <h2 style="margin-top:0;">
-        每日成交额TOP50新增个股统计
-    </h2>
-
-    <p>
-        本模块统计每日进入两市成交额TOP50的新增个股数量，
-        并筛选出T+1日、T+2日仍留存的股票，然后分为两类：T日增跌幅<0,T+1日>0的股票（弱转强）；T日增跌幅>0,T+1日>0的股票（强者恒强）。
-    </p>
-
-    <p>
-        通过该指标可以观察市场风险偏好变化、
-        情绪周期切换以及资金抱团方向。
-    </p>
-
-</div>
--->
-
-
-
 
 <div class="main-container"
-            id="mainContainer"
+     id="mainContainer"
 >
 
     <iframe
@@ -156,6 +124,7 @@
 
 </div>
 
+<!-- 未来走势区域 -->
 <div id="futureChartArea"></div>
 
 
@@ -203,6 +172,24 @@ function changePage(page){
 
     // 切换 iframe
     document.getElementById("frame").src = page;
+
+    // ======================
+    // 控制 futureChartArea
+    // ======================
+
+    // bar 页面显示
+    if(page === "bar.html"){
+
+        document.getElementById("futureChartArea").style.display = "flex";
+
+    }
+
+    // 其它页面隐藏
+    else{
+
+        document.getElementById("futureChartArea").style.display = "none";
+
+    }
 
 }
 
