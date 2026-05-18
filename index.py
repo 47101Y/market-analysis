@@ -6,6 +6,8 @@ from collections import defaultdict
 from pyecharts.globals import CurrentConfig
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
+
+
 # =========================
 # 读取数据
 # =========================
@@ -13,8 +15,28 @@ CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 new_df = pd.read_csv('每日成交额TOP50新增股票.csv')
 weak_df = pd.read_csv('弱转强.csv')
 strong_df = pd.read_csv('强者恒强.csv')
+future_df = pd.read_csv('new_stock_future_10days.csv')
 
-# print(new_df.columns.tolist())
+# =========================
+# 未来10日走势数据
+# =========================
+
+future_dict = defaultdict(dict)
+
+for (d, stock), group in future_df.groupby(['add_date', 'stock']):
+
+    group = group.sort_values(by='trade_date')
+
+    future_dict[d][stock] = {
+
+        'dates': group['trade_date'].tolist(),
+
+        'open': group['open'].tolist(),
+
+        'close': group['close'].tolist()
+    }
+
+
 
 # =========================
 #弱转强详情字典
@@ -168,86 +190,140 @@ bar = (
 
 bar.add_js_funcs(f"""
 
-var strongData = {dict(strong_detail)};
-
-var weakData = {dict(weak_detail)};
+var futureData = {dict(future_dict)};
 
 var newData = {dict(new_detail)};
 
+
+// 创建未来走势区域
+var chartArea = document.createElement('div');
+
+chartArea.id = 'futureChartArea';
+
+chartArea.style.width = '100%';
+
+chartArea.style.background = '#111';
+
+chartArea.style.display = 'flex';
+
+chartArea.style.flexWrap = 'wrap';
+
+chartArea.style.justifyContent = 'center';
+
+chartArea.style.gap = '20px';
+
+chartArea.style.padding = '20px';
+
+document.body.appendChild(chartArea);
+
+
+// 点击柱体事件
 chart_{bar.chart_id}.on('click', function(params) {{
+
+    // 只处理 新增
+    if(params.seriesName !== '新增'){{
+
+        return;
+
+    }}
 
     var date = params.name;
 
-    var content = "";
+    var stocks = newData[date];
 
-    // =====================
-    // 新增股票
-    // =====================
+    if(!stocks) return;
 
-    if(params.seriesName === '新增'){{
+    // 清空旧图
+    chartArea.innerHTML = "";
 
-        var stocks = newData[date];
+    // 遍历股票
+    stocks.forEach(function(item, index){{
 
-        if(stocks){{
+        var future = futureData[date][item.stock];
 
-            content =
-                "【" + date + " 新增股票】\\n\\n"
-                + stocks.join("\\n========================\\n");
+        if(!future) return;
 
-        }} else {{
+        // 创建图表盒子
+        var div = document.createElement('div');
 
-            content = "无数据";
+        div.style.width = '480px';
 
-        }}
+        div.style.height = '320px';
 
-    }}
+        div.style.background = '#1b1b1b';
 
-    // =====================
-    // 强者恒强
-    // =====================
+        div.style.borderRadius = '12px';
 
-    if(params.seriesName === '强者恒强'){{
+        div.style.padding = '10px';
 
-        var stocks = strongData[date];
+        div.id = 'future_chart_' + index;
 
-        if(stocks){{
+        chartArea.appendChild(div);
 
-            content =
-                "【" + date + " 强者恒强股票】\\n\\n"
-                + stocks.join("\\n========================\\n");
+        // 初始化图
+        var myChart = echarts.init(div);
 
-        }} else {{
+        // 折线图
+        var option = {{
 
-            content = "无数据";
+            backgroundColor:'#1b1b1b',
 
-        }}
+            title: {{
 
-    }}
+                text: item.name,
 
-    // =====================
-    // 弱转强
-    // =====================
+                left:'center',
 
-    if(params.seriesName === '弱转强'){{
+                textStyle:{{
+                    color:'#fff',
+                    fontSize:14
+                }}
+            }},
 
-        var stocks = weakData[date];
+            tooltip:{{
+                trigger:'axis'
+            }},
 
-        if(stocks){{
+            xAxis: {{
 
-            content =
-                "【" + date + " 弱转强股票】\\n\\n"
-                + stocks.join("\\n========================\\n");
+                type:'category',
 
-        }} else {{
+                data: future.dates,
 
-            content = "无数据";
+                axisLabel:{{
+                    color:'#ccc',
+                    rotate:45
+                }}
+            }},
 
-        }}
+            yAxis: {{
 
-    }}
+                type:'value',
 
-    // 写入详情框
-    parent.document.getElementById("detailContent").innerText = content;
+                axisLabel:{{
+                    color:'#ccc'
+                }}
+            }},
+
+            series:[
+
+                {{
+
+                    name:'收盘价',
+
+                    type:'line',
+
+                    data: future.close,
+
+                    smooth:true
+                }}
+
+            ]
+        }};
+
+        myChart.setOption(option);
+
+    }});
 
 }});
 
@@ -419,7 +495,7 @@ html = """
 
         width:100%;
 
-        height:900px;
+        height:820px;
     }
 
     iframe{
@@ -431,34 +507,6 @@ html = """
         border:none;
     }
 
-    #detailPanel{
-
-        display:block;
-
-        position:absolute;
-
-        top:0;
-
-        right:0;
-
-        width:360px;
-
-        height:100%;
-
-        background:#1b1b1b;
-
-        color:white;
-
-        padding:20px;
-
-        overflow-y:auto;
-
-        border-left:1px solid #333;
-
-        box-sizing:border-box;
-
-        z-index:999;
-    }
     </style>
 </head>
 
@@ -528,17 +576,9 @@ html = """
         src="bar.html">
     </iframe>
 
-    <div id="detailPanel">
-
-        <h2>股票详情</h2>
-
-        <div id="detailContent">
-            点击柱体查看详情
-        </div>
-
-    </div>
-
 </div>
+
+
 
 
 <!-- 放图片 -->
