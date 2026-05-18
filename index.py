@@ -27,7 +27,7 @@ for (d, stock), group in future_df.groupby(['add_date', 'stock']):
 
     group = group.sort_values(by='trade_date')
 
-    future_dict[d][stock] = {
+    future_dict[str(d)][str(stock)] = {
 
         'dates': group['trade_date'].tolist(),
 
@@ -119,7 +119,13 @@ for _, row in new_df.iterrows():
     T+1日涨跌幅：{row['day2_pct']}
     T+2日涨跌幅：{row['day3_pct']}
     """
-    new_detail[date].append(stock_info)
+    new_detail[date].append({
+
+    'stock': row['stock'],
+
+    'name': row['name']
+
+    })
 
 
 
@@ -195,133 +201,112 @@ var futureData = {dict(future_dict)};
 var newData = {dict(new_detail)};
 
 
-// 创建未来走势区域
-var chartArea = document.createElement('div');
-
-chartArea.id = 'futureChartArea';
-
-chartArea.style.width = '100%';
-
-chartArea.style.background = '#111';
-
-chartArea.style.display = 'flex';
-
-chartArea.style.flexWrap = 'wrap';
-
-chartArea.style.justifyContent = 'center';
-
-chartArea.style.gap = '20px';
-
-chartArea.style.padding = '20px';
-
-document.body.appendChild(chartArea);
-
-
+// ======================
 // 点击柱体事件
+// ======================
+
 chart_{bar.chart_id}.on('click', function(params) {{
 
-    // 只处理 新增
+    // 只处理 “新增”
     if(params.seriesName !== '新增'){{
-
         return;
-
     }}
 
     var date = params.name;
 
     var stocks = newData[date];
 
-    if(!stocks) return;
+    if(!stocks){{
+        return;
+    }}
 
-    // 清空旧图
-    chartArea.innerHTML = "";
+    // 找到下方区域
+    var area = parent.document.getElementById('futureChartArea');
+
+    // 清空旧内容
+    area.innerHTML = "";
 
     // 遍历股票
     stocks.forEach(function(item, index){{
 
-        var future = futureData[date][item.stock];
+        // 获取未来数据
+        var future = futureData[String(date)][String(item.stock)];
 
-        if(!future) return;
+        if(!future){{
+            return;
+        }}
 
-        // 创建图表盒子
-        var div = document.createElement('div');
+        // 创建卡片
+        var div = parent.document.createElement('div');
 
-        div.style.width = '480px';
+        div.className = 'futureChartBox';
 
-        div.style.height = '320px';
+        area.appendChild(div);
 
-        div.style.background = '#1b1b1b';
+        // ======================
+        // 生成HTML表格
+        // ======================
 
-        div.style.borderRadius = '12px';
+        var html = `
 
-        div.style.padding = '10px';
+        <div style="
+            color:white;
+            padding:10px;
+        ">
 
-        div.id = 'future_chart_' + index;
+        <h3 style="
+            text-align:center;
+            margin-bottom:15px;
+        ">
+        ${{item.name}}
+        </h3>
 
-        chartArea.appendChild(div);
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+            text-align:center;
+            font-size:13px;
+        ">
 
-        // 初始化图
-        var myChart = echarts.init(div);
+        <tr style="background:#333;">
 
-        // 折线图
-        var option = {{
+            <th style="padding:6px;border:1px solid #555;">日期</th>
 
-            backgroundColor:'#1b1b1b',
+            <th style="padding:6px;border:1px solid #555;">开盘价</th>
 
-            title: {{
+            <th style="padding:6px;border:1px solid #555;">收盘价</th>
 
-                text: item.name,
+        </tr>
 
-                left:'center',
+        `;
 
-                textStyle:{{
-                    color:'#fff',
-                    fontSize:14
-                }}
-            }},
+        for(var i=0; i<future.dates.length; i++){{
 
-            tooltip:{{
-                trigger:'axis'
-            }},
+            html += `
 
-            xAxis: {{
+            <tr>
 
-                type:'category',
+                <td style="padding:6px;border:1px solid #444;">
+                    ${{future.dates[i]}}
+                </td>
 
-                data: future.dates,
+                <td style="padding:6px;border:1px solid #444;">
+                    ${{future.open[i]}}
+                </td>
 
-                axisLabel:{{
-                    color:'#ccc',
-                    rotate:45
-                }}
-            }},
+                <td style="padding:6px;border:1px solid #444;">
+                    ${{future.close[i]}}
+                </td>
 
-            yAxis: {{
+            </tr>
 
-                type:'value',
+            `;
+        }}
 
-                axisLabel:{{
-                    color:'#ccc'
-                }}
-            }},
+        html += `</table></div>`;
 
-            series:[
-
-                {{
-
-                    name:'收盘价',
-
-                    type:'line',
-
-                    data: future.close,
-
-                    smooth:true
-                }}
-
-            ]
-        }};
-
-        myChart.setOption(option);
+        // 写入盒子
+        div.innerHTML = html;
 
     }});
 
@@ -457,7 +442,7 @@ html = """
 <head>
     <meta charset="UTF-8">
     <title>市场分析Dashboard</title>
-
+    <script src="https://assets.pyecharts.org/assets/v5/echarts.min.js"></script>
     <style>
 
     body{
@@ -506,7 +491,37 @@ html = """
 
         border:none;
     }
+    #futureChartArea{
 
+    width:100%;
+
+    background:#111;
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+    gap:20px;
+
+    padding:20px;
+
+    box-sizing:border-box;
+    }
+
+    .futureChartBox{
+
+        width:520px;
+
+        height:420px;
+
+        background:#1b1b1b;
+
+        border-radius:12px;
+
+        padding:10px;
+    }
     </style>
 </head>
 
@@ -578,6 +593,7 @@ html = """
 
 </div>
 
+<div id="futureChartArea"></div>
 
 
 
@@ -624,20 +640,6 @@ function changePage(page){
 
     // 切换 iframe
     document.getElementById("frame").src = page;
-
-    // bar 页面显示详情
-    if(page === "bar.html"){
-
-        document.getElementById("detailPanel").style.display = "block";
-
-    }
-
-    // 其它页面隐藏详情
-    else{
-
-        document.getElementById("detailPanel").style.display = "none";
-
-    }
 
 }
 

@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <title>市场分析Dashboard</title>
-
+    <script src="https://assets.pyecharts.org/assets/v5/echarts.min.js"></script>
     <style>
 
     body{
@@ -54,7 +54,37 @@
 
         border:none;
     }
+    #futureChartArea{
 
+    width:100%;
+
+    background:#111;
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    justify-content:center;
+
+    gap:20px;
+
+    padding:20px;
+
+    box-sizing:border-box;
+    }
+
+    .futureChartBox{
+
+        width:520px;
+
+        height:420px;
+
+        background:#1b1b1b;
+
+        border-radius:12px;
+
+        padding:10px;
+    }
     </style>
 </head>
 
@@ -126,6 +156,7 @@
 
 </div>
 
+<div id="futureChartArea"></div>
 
 
 
@@ -172,20 +203,6 @@ function changePage(page){
 
     // 切换 iframe
     document.getElementById("frame").src = page;
-
-    // bar 页面显示详情
-    if(page === "bar.html"){
-
-        document.getElementById("detailPanel").style.display = "block";
-
-    }
-
-    // 其它页面隐藏详情
-    else{
-
-        document.getElementById("detailPanel").style.display = "none";
-
-    }
 
 }
 
