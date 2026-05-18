@@ -166,15 +166,18 @@ chart_{bar.chart_id}.on('click', function(params) {{
             <th style="padding:6px;border:1px solid #555;">日期</th>
             <th style="padding:6px;border:1px solid #555;">开盘价</th>
             <th style="padding:6px;border:1px solid #555;">收盘价</th>
+            <th style="padding:6px;border:1px solid #555;">当日增跌幅</th>
         </tr>
         `;
 
         for(var i=0; i<future.dates.length; i++){{
+            var pctColor = future.pct[i] > 0 ? '#ff4d4f' : (future.pct[i] < 0 ? '#52c41a' : 'white');
             html += `
             <tr>
                 <td style="padding:6px;border:1px solid #444;">${{future.dates[i]}}</td>
                 <td style="padding:6px;border:1px solid #444;">${{future.open[i]}}</td>
                 <td style="padding:6px;border:1px solid #444;">${{future.close[i]}}</td>
+                <td style="padding:6px;border:1px solid #444;color: ${{pctColor}};">${{future.pct[i]}}</td>
             </tr>`;
         }}
 
