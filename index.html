@@ -162,124 +162,171 @@
 
 
 <script>
-    // 切换页面的函数
-    function changePage(page) {
 
-        // 显示主图区域
-        document.getElementById("mainContainer").style.display = "block";
+function changePage(page) {
 
-        // 隐藏图片
-        document.getElementById("imageBox").style.display = "none";
+    // ======================
+    // 清空 futureChartArea
+    // ======================
 
-        // 切换 iframe
-        document.getElementById("frame").src = page;
+    document.getElementById("futureChartArea").innerHTML = "";
 
-        // ====================== 控制 futureChartArea ======================
-        if (page === "bar.html") {
+    // ======================
+    // 隐藏热力图
+    // ======================
 
-            document.getElementById("futureChartArea").style.display = "flex";
+    document.getElementById("imageBox").style.display = "none";
 
-            // 等 iframe 加载完成后再添加提示
-            document.getElementById("frame").onload = function () {
-                addHintToBarChart();
-            };
+    // ======================
+    // 显示 iframe
+    // ======================
 
-        } else {
+    document.getElementById("mainContainer").style.display = "block";
 
-            document.getElementById("futureChartArea").style.display = "none";
+    // ======================
+    // 切换页面
+    // ======================
 
-        }
+    document.getElementById("frame").src = page;
+
+    // ======================
+    // bar 页面
+    // ======================
+
+    if (page === "bar.html") {
+
+        document.getElementById("futureChartArea").style.display = "flex";
+
+        document.getElementById("frame").onload = function () {
+
+            addHintToBarChart();
+
+        };
+
     }
 
+    // ======================
+    // 其他页面
+    // ======================
+
+    else {
+
+        document.getElementById("futureChartArea").style.display = "none";
+
+    }
+}
+
+
+
+// ======================
+// 显示热力图
+// ======================
+
+function showImage() {
+
+    // 清空 futureChartArea
+    document.getElementById("futureChartArea").innerHTML = "";
+
+    // 隐藏走势区域
+    document.getElementById("futureChartArea").style.display = "none";
+
+    // 隐藏 iframe
+    document.getElementById("mainContainer").style.display = "none";
 
     // 显示图片
-    function showImage() {
-
-        document.getElementById("mainContainer").style.display = "none";
-
-        document.getElementById("imageBox").style.display = "flex";
-    }
+    document.getElementById("imageBox").style.display = "flex";
+}
 
 
-    // ====================== 添加提示语 ======================
-    function addHintToBarChart() {
 
-        const iframe = document.getElementById("frame");
+// ======================
+// 添加提示语
+// ======================
 
-        try {
+function addHintToBarChart() {
 
-            const iframeWindow = iframe.contentWindow;
+    const iframe = document.getElementById("frame");
 
-            let chart = null;
+    try {
 
-            // 获取 iframe 中所有变量
-            const keys = Object.keys(iframeWindow);
+        const chart = iframe.contentWindow.myChart;
 
-            // 查找 echarts 实例
-            for (let key of keys) {
+        if (!chart) {
 
-                if (
-                    key.startsWith("chart_") &&
-                    iframeWindow[key] &&
-                    typeof iframeWindow[key].setOption === "function"
-                ) {
+            console.warn("myChart 不存在");
 
-                    chart = iframeWindow[key];
-                    break;
-                }
-            }
-
-            // 如果找到图表
-            if (chart) {
-
-                chart.setOption({
-
-                    graphic: {
-
-                        elements: [
-
-                            {
-                                type: "text",
-
-                                left: "center",
-                                top: "92%",
-
-                                silent: true,
-
-                                z: 100,
-
-                                style: {
-
-                                    text: "👆 点击新增柱体，查看未来走势详情",
-
-                                    fontSize: 16,
-
-                                    fontWeight: "bold",
-
-                                    fill: "#ffffff",
-
-                                    opacity: 0.9,
-
-                                    textAlign: "center"
-                                }
-                            }
-                        ]
-                    }
-
-                });
-
-            } else {
-
-                console.warn("没有找到 echarts 图表实例");
-
-            }
-
-        } catch (error) {
-
-            console.warn("无法访问 iframe 内容:", error);
-
+            return;
         }
+
+        chart.setOption({
+
+            graphic: {
+
+                elements: [
+
+                    {
+
+                        type: "text",
+
+                        left: "center",
+
+                        top: "92%",
+
+                        silent: true,
+
+                        z: 100,
+
+                        style: {
+
+                            text: "👆 点击新增柱体，查看未来走势详情",
+
+                            fontSize: 16,
+
+                            fontWeight: "bold",
+
+                            fill: "#ffffff",
+
+                            opacity: 0.95,
+
+                            textAlign: "center"
+                        }
+                    }
+                ]
+            }
+
+        });
+
+    } catch (error) {
+
+        console.warn(error);
+
     }
+}
+
+    // ========================
+    // 页面初始加载时自动添加提示（仅当 iframe 为 bar.html）
+    // ========================
+    window.onload = function () {
+        var iframe = document.getElementById('frame');
+        // 监听 iframe 加载完成
+        iframe.addEventListener('load', function () {
+            if (iframe.src.includes('bar.html')) {
+                addHintToBarChart();
+            }
+        });
+        // 如果此时 iframe 已经加载完毕，手动调用一次
+        if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+            if (iframe.src.includes('bar.html')) {
+                addHintToBarChart();
+            }
+        }
+    };
+</script>
+
+</body>
+
+};
+
 </script>
 
 
