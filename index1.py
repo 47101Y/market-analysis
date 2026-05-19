@@ -164,6 +164,16 @@ bar = (
 # 点击事件
 bar.add_js_funcs(f"""
 
+// ======================
+// 暴露 chart 给父页面
+// ======================
+
+window.myChart = chart_{bar.chart_id};
+
+// ======================
+// 数据
+// ======================
+
 var futureData = {json.dumps(future_dict, ensure_ascii=False)};
 var newData = {json.dumps(dict(new_detail), ensure_ascii=False)};
 
@@ -300,7 +310,6 @@ chart_{bar.chart_id}.on('click', function(params) {{
 
 }});
 """)
-
 
 # =========================
 # 第二部分：行业热力图
