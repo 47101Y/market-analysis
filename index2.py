@@ -17,26 +17,40 @@ strong_df = pd.read_csv('强者恒强.csv')
 wide_df = pd.read_csv('wide_stock_data.csv')
 
 # =========================
-# 从宽表构建 future_dict（用于前端展示宽表格）
+# 从宽表构建 future_dict
 # =========================
 future_dict = defaultdict(dict)
 
 for _, row in wide_df.iterrows():
+
     add_date = str(row['add_date'])
-    stock = row['stock']
-    name = row['name']
+    stock = str(row['stock'])
 
-    # 获取所有以 open_ 开头的列，并提取日期（按日期排序）
-    open_cols = [col for col in wide_df.columns if col.startswith('open_')]
-    open_cols.sort(key=lambda x: x.split('_')[1])          # 按日期字符串排序
-    dates = [col.split('_')[1] for col in open_cols]
+    # 横向10日数据
+    dates = []
+    open_vals = []
+    close_vals = []
+    pct_vals = []
 
-    open_vals = [row[col] for col in open_cols]
-    close_vals = [row[col.replace('open', 'close')] for col in open_cols]
-    pct_vals = [row[col.replace('open', 'today_pct')] for col in open_cols]
+    # T日
+    dates.append("T")
+
+    open_vals.append(row['open'])
+    close_vals.append(row['close'])
+    pct_vals.append(row['today_pct'])
+
+    # T+1 ~ T+10
+    for i in range(1, 11):
+
+        dates.append(f"T+{i}")
+
+        open_vals.append(row[f'open{i}'])
+        close_vals.append(row[f'close{i}'])
+        pct_vals.append(row[f'today_pct{i}'])
 
     future_dict[add_date][stock] = {
-        'name': name,
+        'name': row['name'],
+        'industry': row['industry'],
         'dates': dates,
         'open': open_vals,
         'close': close_vals,
@@ -86,7 +100,7 @@ new_detail = defaultdict(list)
 for _, row in new_df.iterrows():
     date = row['date']
     new_detail[date].append({
-        'stock': row['stock'],
+        'stock': str(row['stock']),
         'name': row['name']
     })
 
