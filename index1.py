@@ -39,6 +39,13 @@ for _, row in df.iterrows():
         future_dict[date] = {}
 
     future_list = []
+    
+    future_list.append({
+            "day": 0,
+            "open": row[f'open'],
+            "close": row[f'close'],
+            "pct": row[f'today_pct']
+        })
 
     for i in range(1, 11):
 

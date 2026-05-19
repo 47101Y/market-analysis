@@ -162,49 +162,113 @@
 
 
 <script>
-function changePage(page){
+    // 切换页面的函数
+    function changePage(page) {
+        // 显示主图区域
+        document.getElementById("mainContainer").style.display = "block";
+        // 隐藏图片
+        document.getElementById("imageBox").style.display = "none";
+        // 切换 iframe
+        document.getElementById("frame").src = page;
 
-    // 显示主图区域
-    document.getElementById("mainContainer").style.display = "block";
-
-    // 隐藏图片
-    document.getElementById("imageBox").style.display = "none";
-
-    // 切换 iframe
-    document.getElementById("frame").src = page;
-
-    // ======================
-    // 控制 futureChartArea
-    // ======================
-
-    // bar 页面显示
-    if(page === "bar.html"){
-
-        document.getElementById("futureChartArea").style.display = "flex";
-
+        // ====================== 控制 futureChartArea ======================
+        if (page === "bar.html") {
+            document.getElementById("futureChartArea").style.display = "flex";
+            // 【新增】页面切换后，添加提示标语
+            addHintToBarChart();
+        } else {
+            document.getElementById("futureChartArea").style.display = "none";
+        }
     }
 
-    // 其它页面隐藏
-    else{
-
-        document.getElementById("futureChartArea").style.display = "none";
-
+    function showImage() {
+        document.getElementById("mainContainer").style.display = "none";
+        document.getElementById("imageBox").style.display = "flex";
     }
 
-}
+    // 【新增函数】用于向 bar 图表中添加“点击提示”
+    function addHintToBarChart() {
+        // 防止 iframe 还没加载好就执行
+        const iframe = document.getElementById('frame');
+        
+        // 尝试获取 iframe 内部的 echarts 实例
+        let chart = null;
+        
+        try {
+            // Pyecharts 默认会把 chart 对象挂在 window 对象上
+            // 通常变量名是 chart_<chart_id> 或者直接是 chart
+            // 这里需要一点“猜测”逻辑
+            const iframeWindow = iframe.contentWindow;
+            
+            // 等待 iframe 加载完成并尝试获取 chart
+            const tryGetChart = () => {
+                // 这里的逻辑取决于 Pyecharts 生成的变量名
+                // 常见的命名规则：
+                // 1. 如果你设置了 chart_id: window['chart_' + chart_id]
+                // 2. 或者直接是 window['chart']
+                
+                // 由于你之前的代码使用了 replace("__chartId__", str(bar.chart_id))
+                // 我们可以推断变量名很可能是 chart_<id>
+                
+                // 获取 iframe 内的所有变量名
+                const iframeKeys = Object.keys(iframeWindow);
+                // 寻找以 chart_ 开头的变量
+                for (let key of iframeKeys) {
+                    if (key.startsWith('chart_') && iframeWindow[key] && typeof iframeWindow[key].setOption === 'function') {
+                        chart = iframeWindow[key];
+                        break;
+                    }
+                }
+                
+                // 如果找到了图表实例
+                if (chart) {
+                    // 1. 先移除之前可能存在的旧提示（防止重复添加）
+                    chart.setOption({
+                        graphic: null
+                    }, {notMerge: false});
 
-
-function showImage(){
-
-    // 整个主图区域消失
-    document.getElementById("mainContainer").style.display = "none";
-
-    // 显示热力图
-    document.getElementById("imageBox").style.display = "flex";
-
-}
-
-
+                    // 2. 添加新的提示文本
+                    chart.setOption({
+                        graphic: {
+                            elements: [{
+                                type: 'text',
+                                shape: {
+                                    // 这里的 x: 'center' y: '85%' 是相对于图表容器的位置
+                                    // 你可以根据实际情况调整
+                                    x: 'center',
+                                    y: '85%' 
+                                },
+                                style: {
+                                    text: '👆 点击新增柱体，查看未来走势详情',
+                                    fontSize: 14,
+                                    fontWeight: 'bold',
+                                    fill: '#fff', // 白色文字
+                                    align: 'center',
+                                    verticalAlign: 'middle',
+                                    opacity: 0.8
+                                },
+                                // 添加一个简单的淡入动画
+                                animationType: 'fade',
+                                animationDuration: 800,
+                                animationEasing: 'quadraticOut'
+                            }]
+                        }
+                    }, {notMerge: false});
+                } else {
+                    // 如果没找到，稍后重试（最多重试 3 次）
+                    if (retryCount < 3) {
+                        setTimeout(tryGetChart, 500);
+                        retryCount++;
+                    }
+                }
+            };
+            
+            let retryCount = 0;
+            tryGetChart();
+        } catch (error) {
+            console.warn('无法访问 iframe 内容，可能跨域了，或者图表还没初始化:', error);
+        }
+    }
 </script>
 
 

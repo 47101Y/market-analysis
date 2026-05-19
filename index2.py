@@ -14,6 +14,7 @@ CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 new_df = pd.read_csv('每日成交额TOP50新增股票.csv')
 weak_df = pd.read_csv('弱转强.csv')
 strong_df = pd.read_csv('强者恒强.csv')
+
 # 未来10日宽表（横向表格）
 wide_df = pd.read_csv('wide_stock_data.csv')
 
