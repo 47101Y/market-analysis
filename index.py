@@ -206,7 +206,9 @@ heat_bar = (
     .set_global_opts(
         title_opts=opts.TitleOpts(title='行业热力分布'),
         xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
-        visualmap_opts=opts.VisualMapOpts(max_=int(industry_count['count'].max()))
+        visualmap_opts=opts.VisualMapOpts(max_=int(industry_count['count'].max()),
+                                        pos_right="5%", 
+                                        pos_top="middle")
     )
 )
 
@@ -227,7 +229,10 @@ for d in sorted(rotation_group['date'].unique()):
         .set_global_opts(
             title_opts=opts.TitleOpts(title=f'{d} 行业轮动'),
             xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
-            visualmap_opts=opts.VisualMapOpts(max_=int(temp['count'].max()))
+            visualmap_opts=opts.VisualMapOpts(max_=int(temp['count'].max()),
+                                            pos_right="5%",   # 离右边 5%，往左挪，靠近主图
+                                            pos_top="middle"  # 垂直居中，和主图对齐
+                                              )
         )
     )
     timeline.add(bar_day, time_point=d)
