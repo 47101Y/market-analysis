@@ -4,6 +4,7 @@ from pyecharts import options as opts
 from pyecharts.globals import ThemeType
 from collections import defaultdict
 from pyecharts.globals import CurrentConfig
+import json
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 
@@ -139,68 +140,80 @@ bar = (
     )
 )
 
-# 点击事件：生成宽表格（指标为行，日期为列）
-# 重点：我用了最安全的 『 三引号 + 无任何嵌套冲突 』写法
-bar.add_js_funcs("""
-var futureData = __futureData__;
-var newData = __newData__;
+# =========================
+# 2. 注入 JS 点击事件（修复版）
+# =========================
+# 使用 json.dumps 确保 Python 字典完美转换为 JS 能识别的 JSON 格式（双引号）
+future_data_json = json.dumps(dict(future_dict), ensure_ascii=False)
+new_data_json = json.dumps(dict(new_detail), ensure_ascii=False)
 
-chart_ __chartId__.on('click', function(params) {
+bar.add_js_funcs(f"""
+// 将数据挂载到 window 全局对象，防止变量找不到
+window.futureData = {future_data_json};
+window.newData = {new_data_json};
+
+// 绑定点击事件
+chart_{bar.chart_id}.on('click', function(params) {{
     if (params.seriesName !== '新增') return;
 
     var date = params.name;
-    var stockList = newData[date];
+    var stockList = window.newData[date];
     if (!stockList || stockList.length === 0) return;
 
     var area = parent.document.getElementById('futureChartArea');
+    if (!area) return; // 防止找不到容器报错
     area.innerHTML = '';
 
-    var tableHTML = '<div style="color:white; padding:10px;">';
-    tableHTML += '<h4 style="text-align:center;">' + date + ' 未来10天数据</h4>';
-    tableHTML += '<div style="overflow-x:auto;">';
-    tableHTML += '<table style="width:100%; min-width:1200px; border-collapse:collapse; text-align:center; font-size:13px;">';
+    // 使用数组 push 拼接 HTML，比字符串 += 更高效且不易出错
+    var html = [];
+    html.push('<div style="color:white; padding:10px;">');
+    html.push('<h4 style="text-align:center;">' + date + ' 未来10天数据</h4>');
+    html.push('<div style="overflow-x:auto;">');
+    html.push('<table style="width:100%; min-width:1200px; border-collapse:collapse; text-align:center; font-size:13px;">');
 
     // 表头
-    tableHTML += '<tr style="background:#333;">';
-    tableHTML += '<th style="padding:8px; border:1px solid #666;">股票</th>';
-    tableHTML += '<th style="padding:8px; border:1px solid #666;">行业</th>';
+    html.push('<tr style="background:#333;">');
+    html.push('<th style="padding:8px; border:1px solid #666;">股票</th>');
+    html.push('<th style="padding:8px; border:1px solid #666;">行业</th>');
     
-    var first = futureData[date][stockList[0].stock];
-    for(var i=0;i<first.dates.length;i++){
-        var d = first.dates[i];
-        tableHTML += '<th style="padding:8px; border:1px solid #666;">' + d + '</th>';
-    }
-    tableHTML += '</tr>';
+    var firstStock = stockList[0].stock;
+    var first = window.futureData[date][firstStock];
+    
+    // 动态生成表头日期
+    for(var i = 0; i < first.dates.length; i++){{
+        html.push('<th style="padding:8px; border:1px solid #666;">' + first.dates[i] + '</th>');
+    }}
+    html.push('</tr>');
 
-    // 每行一只股票
-    for(var s=0;s<stockList.length;s++){
+    // 每一行股票数据
+    for(var s = 0; s < stockList.length; s++){{
         var item = stockList[s];
-        var fut = futureData[date][item.stock];
+        var fut = window.futureData[date][item.stock];
         if(!fut) continue;
 
-        tableHTML += '<tr>';
-        tableHTML += '<td style="padding:8px; border:1px solid #444;">' + fut.name + '</td>';
-        tableHTML += '<td style="padding:8px; border:1px solid #444;">' + fut.industry + '</td>';
+        html.push('<tr>');
+        html.push('<td style="padding:8px; border:1px solid #444;">' + fut.name + '</td>');
+        html.push('<td style="padding:8px; border:1px solid #444;">' + fut.industry + '</td>');
 
-        for(var i=0;i<fut.dates.length;i++){
+        for(var i = 0; i < fut.dates.length; i++){{
             var o = fut.open[i];
             var c = fut.close[i];
             var p = fut.pct[i];
+            // 涨跌颜色判断
             var color = p > 0 ? '#ff4d4f' : (p < 0 ? '#52c41a' : '#fff');
 
-            tableHTML += '<td style="padding:8px; border:1px solid #444;">';
-            tableHTML += '开:' + o + '<br>收:' + c + '<br><span style=\"color:' + color + '\">' + p + '</span>';
-            tableHTML += '</td>';
-        }
-        tableHTML += '</tr>';
-    }
+            html.push('<td style="padding:8px; border:1px solid #444;">');
+            // 注意：这里使用了模板字符串的反引号或者简单的字符串拼接
+            html.push('开:' + o + '<br>收:' + c + '<br><span style="color:' + color + ';">' + p + '</span>');
+            html.push('</td>');
+        }}
+        html.push('</tr>');
+    }}
 
-    tableHTML += '</table></div></div>';
-    area.innerHTML = tableHTML;
-});
-""".replace("__futureData__", str(dict(future_dict)))
- .replace("__newData__", str(dict(new_detail)))
- .replace("__chartId__", str(bar.chart_id)))
+    html.push('</table></div></div>');
+    area.innerHTML = html.join('');
+}});
+""")
 
 
 # =========================
