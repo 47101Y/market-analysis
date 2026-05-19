@@ -16,30 +16,41 @@ strong_df = pd.read_csv('强者恒强.csv')
 # 未来10日宽表（横向表格）
 wide_df = pd.read_csv('wide_stock_data.csv')
 
+
+# =========================
 # 构建 future_dict（给前端JS用）
+# =========================
 future_dict = defaultdict(dict)
 
 for _, row in wide_df.iterrows():
     add_date = str(row['add_date'])
     stock = str(row['stock'])
 
-    # 日期表头：T, T+1 ... T+10
-    dates = [f"T+{i}" if i != 0 else "T" for i in range(11)]
+    dates = []
+    open_vals = []
+    close_vals = []
+    pct_vals = []
 
-    # 开盘价 open ~ open10
-    opens = [row[f'open{i}' if i != 0 else 'open'] for i in range(11)]
-    # 收盘价 close ~ close10
-    closes = [row[f'close{i}' if i != 0 else 'close'] for i in range(11)]
-    # 涨跌幅 today_pct ~ today_pct10
-    pcts = [row[f'today_pct{i}' if i != 0 else 'today_pct'] for i in range(11)]
+    # T
+    dates.append("T")
+    open_vals.append(row['open'])
+    close_vals.append(row['close'])
+    pct_vals.append(row['today_pct'])
+
+    # T+1 ~ T+10
+    for i in range(1, 11):
+        dates.append(f"T+{i}")
+        open_vals.append(row[f'open{i}'])
+        close_vals.append(row[f'close{i}'])
+        pct_vals.append(row[f'today_pct{i}'])
 
     future_dict[add_date][stock] = {
-        "name": row['name'],
-        "industry": row['industry'],
-        "dates": dates,
-        "open": opens,
-        "close": closes,
-        "pct": pcts
+        'name': row['name'],
+        'industry': row['industry'],
+        'dates': dates,
+        'open': open_vals,
+        'close': close_vals,
+        'pct': pct_vals
     }
 
 # =========================
@@ -129,67 +140,69 @@ bar = (
 )
 
 # 点击事件：生成宽表格（指标为行，日期为列）
-bar.add_js_funcs(f"""
-var futureData = {dict(future_dict)};
-var newData = {dict(new_detail)};
+# 重点：我用了最安全的 『 三引号 + 无任何嵌套冲突 』写法
+bar.add_js_funcs("""
+var futureData = __futureData__;
+var newData = __newData__;
 
-chart_{bar.chart_id}.on('click', function(params) {{
+chart_ __chartId__.on('click', function(params) {
     if (params.seriesName !== '新增') return;
 
-    var clickDate = params.name;
-    var stocks = newData[clickDate];
-    if (!stocks || stocks.length === 0) return;
+    var date = params.name;
+    var stockList = newData[date];
+    if (!stockList || stockList.length === 0) return;
 
     var area = parent.document.getElementById('futureChartArea');
-    area.innerHTML = "";
+    area.innerHTML = '';
 
-    var bigTable = parent.document.createElement('div');
-    bigTable.style.padding = '10px';
-    bigTable.style.color = 'white';
-    area.appendChild(bigTable);
+    var tableHTML = '<div style="color:white; padding:10px;">';
+    tableHTML += '<h4 style="text-align:center;">' + date + ' 未来10天数据</h4>';
+    tableHTML += '<div style="overflow-x:auto;">';
+    tableHTML += '<table style="width:100%; min-width:1200px; border-collapse:collapse; text-align:center; font-size:13px;">';
 
-    var html = `
-    <h3 style="text-align:center;">${{clickDate}} 未来10天表现</h3>
-    <div style="overflow-x:auto;">
-    <table style="width:100%;min-width:1200px;border-collapse:collapse;text-align:center;font-size:13px;">
-        <tr style="background:#333;">
-            <th style="padding:8px;border:1px solid #666;">股票名称</th>
-            <th style="padding:8px;border:1px solid #666;">行业</th>
-    `;
+    // 表头
+    tableHTML += '<tr style="background:#333;">';
+    tableHTML += '<th style="padding:8px; border:1px solid #666;">股票</th>';
+    tableHTML += '<th style="padding:8px; border:1px solid #666;">行业</th>';
+    
+    var first = futureData[date][stockList[0].stock];
+    for(var i=0;i<first.dates.length;i++){
+        var d = first.dates[i];
+        tableHTML += '<th style="padding:8px; border:1px solid #666;">' + d + '</th>';
+    }
+    tableHTML += '</tr>';
 
-    var firstStock = futureData[clickDate][stocks[0].stock];
-    firstStock.dates.forEach(d => {{
-        html += `<th style="padding:8px;border:1px solid #666;">${{d}}</th>`;
-    }});
-    html += `</tr>`;
+    // 每行一只股票
+    for(var s=0;s<stockList.length;s++){
+        var item = stockList[s];
+        var fut = futureData[date][item.stock];
+        if(!fut) continue;
 
-    stocks.forEach(item => {{
-        var fut = futureData[clickDate][item.stock];
-        if (!fut) return;
+        tableHTML += '<tr>';
+        tableHTML += '<td style="padding:8px; border:1px solid #444;">' + fut.name + '</td>';
+        tableHTML += '<td style="padding:8px; border:1px solid #444;">' + fut.industry + '</td>';
 
-        html += `<tr>`;
-        html += `<td style="padding:8px;border:1px solid #444;">${{fut.name}}</td>`;
-        html += `<td style="padding:8px;border:1px solid #444;">${{fut.industry}}</td>`;
-
-        for (var i = 0; i < fut.dates.length; i++) {{
+        for(var i=0;i<fut.dates.length;i++){
             var o = fut.open[i];
             var c = fut.close[i];
             var p = fut.pct[i];
             var color = p > 0 ? '#ff4d4f' : (p < 0 ? '#52c41a' : '#fff');
 
-            html += `
-            <td style="padding:8px;border:1px solid #444;line-height:1.5;">
-                开:${{o}}<br>收:${{c}}<br><span style="color:${{color}}">${{p}}</span>
-            </td>`;
-        }}
+            tableHTML += '<td style="padding:8px; border:1px solid #444;">';
+            tableHTML += '开:' + o + '<br>收:' + c + '<br><span style=\"color:' + color + '\">' + p + '</span>';
+            tableHTML += '</td>';
+        }
+        tableHTML += '</tr>';
+    }
 
-        html += `</tr>`;
-    }});
+    tableHTML += '</table></div></div>';
+    area.innerHTML = tableHTML;
+});
+""".replace("__futureData__", str(dict(future_dict)))
+ .replace("__newData__", str(dict(new_detail)))
+ .replace("__chartId__", str(bar.chart_id)))
 
-    html += `</table></div>`;
-    bigTable.innerHTML = html;
-}});
-""")
+
 # =========================
 # 第二部分：行业热力图
 # =========================
