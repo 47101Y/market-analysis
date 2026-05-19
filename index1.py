@@ -4,6 +4,7 @@ from pyecharts import options as opts
 from pyecharts.globals import ThemeType
 from collections import defaultdict
 from pyecharts.globals import CurrentConfig
+import json
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 
@@ -156,8 +157,8 @@ bar = (
 # 点击事件
 bar.add_js_funcs(f"""
 
-var futureData = {future_dict};
-var newData = {new_detail};
+var futureData = {json.dumps(future_dict, ensure_ascii=False)};
+var newData = {json.dumps(dict(new_detail), ensure_ascii=False)};
 
 chart_{bar.chart_id}.on('click', function(params) {{
 
