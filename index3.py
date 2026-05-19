@@ -161,70 +161,66 @@ chart_ __chartId__.on('click', function(params) {
     var area = parent.document.getElementById('futureChartArea');
     area.innerHTML = '';
 
-    // 开始构建表格
     var tableHTML = '<div style="color:white; padding:15px; font-family: sans-serif;">';
     tableHTML += '<h3 style="text-align:center; margin-bottom: 20px;">' + date + ' 未来10天详细数据</h3>';
     tableHTML += '<div style="overflow-x:auto;">';
 
-    // 设置宽度 1800px，确保横向足够宽，不会挤在一起
-    tableHTML += '<table style="width:1800px; border-collapse:collapse; text-align:center; font-size:13px; margin: 0 auto;">';
+    // 设置宽度为自动，让表格自然撑开，或者给一个足够大的宽度如 2500px
+    tableHTML += '<table style="width:auto; min-width:2500px; border-collapse:collapse; text-align:center; font-size:12px; margin: 0 auto;">';
 
-    // ================= 表头部分 =================
-    tableHTML += '<tr style="background:#222; color: #ccc;">';
-    tableHTML += '<th style="padding:10px; border:1px solid #444; width: 100px;">股票名称</th>';
-    tableHTML += '<th style="padding:10px; border:1px solid #444; width: 100px;">所属行业</th>';
+    // =========================
+    // 1. 生成表头 (股票 | 行业 | T-开 | T-收 | T-幅 | T+1-开 | T+1-收 | ...)
+    // =========================
+    tableHTML += '<tr style="background:#2c3e50;">';
+    // 固定列
+    tableHTML += '<th style="padding:10px; border:1px solid #444; position:sticky; left:0; background:#2c3e50; z-index:2;">股票</th>';
+    tableHTML += '<th style="padding:10px; border:1px solid #444; position:sticky; left:80px; background:#2c3e50; z-index:2;">行业</th>';
 
-    // 获取第一只股票的数据来确定日期长度
-    var first = futureData[date][stockList[0].stock];
+    // 获取第一只股票的数据来确定有多少天 (T, T+1...)
+    var firstStock = futureData[date][stockList[0].stock];
+    var dateCount = firstStock.dates.length;
 
-    for(var i=0; i < first.dates.length; i++){
-        var d = first.dates[i];
-        // 表头改为：日期在最上，下面分两列
-        tableHTML += '<th colspan="2" style="padding:5px; border:1px solid #444; background:#333;">' + d + '</th>';
+    // 循环日期生成表头
+    for(var i=0; i < dateCount; i++){
+        var dName = firstStock.dates[i];
+        // 每个日期生成3个表头
+        tableHTML += '<th style="padding:8px; border:1px solid #444; background:#34495e; color:#aebac6;">' + dName + '<br>开盘</th>';
+        tableHTML += '<th style="padding:8px; border:1px solid #444; background:#34495e; color:#aebac6;">' + dName + '<br>收盘</th>';
+        tableHTML += '<th style="padding:8px; border:1px solid #444; background:#34495e; color:#aebac6;">' + dName + '<br>涨幅</th>';
     }
     tableHTML += '</tr>';
 
-    // 第二行表头：具体的 开/收
-    tableHTML += '<tr style="background:#222; color: #999;">';
-    tableHTML += '<th style="padding:5px; border:1px solid #444;"></th>'; // 对应股票名
-    tableHTML += '<th style="padding:5px; border:1px solid #444;"></th>'; // 对应行业
-    for(var i=0; i < first.dates.length; i++){
-        // 这里顺序改为：先收(左) 后开(右)，或者你可以改回 先开后收
-        tableHTML += '<th style="padding:5px; border:1px solid #444; font-weight:normal;">收</th>';
-        tableHTML += '<th style="padding:5px; border:1px solid #444; font-weight:normal;">开</th>';
-    }
-    tableHTML += '</tr>';
-
-    // ================= 数据行部分 =================
+    // =========================
+    // 2. 生成内容行
+    // =========================
     for(var s=0; s < stockList.length; s++){
         var item = stockList[s];
         var fut = futureData[date][item.stock];
         if(!fut) continue;
 
-        tableHTML += '<tr style="background:#111;">';
-
-        // 股票名和行业（固定列）
-        tableHTML += '<td style="padding:8px; border:1px solid #444; font-weight:bold; color:#fff;">' + fut.name + '</td>';
-        tableHTML += '<td style="padding:8px; border:1px solid #444; color:#aaa;">' + fut.industry + '</td>';
+        tableHTML += '<tr>';
+        // 股票名称
+        tableHTML += '<td style="padding:8px; border:1px solid #444; font-weight:bold;">' + fut.name + '</td>';
+        // 行业
+        tableHTML += '<td style="padding:8px; border:1px solid #444;">' + fut.industry + '</td>';
 
         // 循环每一天的数据
-        for(var i=0; i < fut.dates.length; i++){
-            var o = fut.open[i];   // 开盘
-            var c = fut.close[i];  // 收盘
-            var p = fut.pct[i];    // 涨跌幅
-            var color = p >= 0 ? '#ff4d4f' : '#52c41a'; // 红涨绿跌
+        for(var i=0; i < dateCount; i++){
+            var o = fut.open[i];
+            var c = fut.close[i];
+            var p = fut.pct[i];
 
-            // 为了让表格整齐，我们将 收盘 和 开盘 分别放在两个 <td> 里
-            // 第一列：收盘 + 涨跌幅
-            tableHTML += '<td style="padding:5px; border:1px solid #444; line-height:1.5;">';
-            tableHTML += '<div style="color:#fff; font-size:12px;">' + c + '</div>'; // 收盘价白色
-            tableHTML += '<div style="color:' + color + '; font-size:11px;">' + p + '%</div>'; // 涨跌幅带颜色
-            tableHTML += '</td>';
+            // 根据涨跌幅决定颜色
+            var color = '#ffffff'; // 默认白色
+            if(p > 0) color = '#ff4d4f'; // 涨-红
+            else if(p < 0) color = '#52c41a'; // 跌-绿
 
-            // 第二列：开盘
-            tableHTML += '<td style="padding:5px; border:1px solid #444; background:#1a1a1a;">';
-            tableHTML += '<div style="color:#bbb; font-size:12px;">' + o + '</div>'; // 开盘价灰色一点，区分主次
-            tableHTML += '</td>';
+            // 1. 开盘价格子
+            tableHTML += '<td style="padding:6px; border:1px solid #333; background:#1f1f1f;">' + o + '</td>';
+            // 2. 收盘价格子
+            tableHTML += '<td style="padding:6px; border:1px solid #333; background:#1f1f1f;">' + c + '</td>';
+            // 3. 涨跌幅格子 (带颜色)
+            tableHTML += '<td style="padding:6px; border:1px solid #333; background:#1f1f1f; color:' + color + '; font-weight:bold;">' + p + '</td>';
         }
         tableHTML += '</tr>';
     }
@@ -235,7 +231,6 @@ chart_ __chartId__.on('click', function(params) {
 """.replace("__futureData__", json.dumps(dict(future_dict)))
  .replace("__newData__", json.dumps(dict(new_detail)))
  .replace("__chartId__", str(bar.chart_id)))
-
 
 # =========================
 # 第二部分：行业热力图
