@@ -244,62 +244,44 @@ function showImage() {
 // ======================
 
 function addHintToBarChart() {
-
     const iframe = document.getElementById("frame");
-
     try {
-
         const chart = iframe.contentWindow.myChart;
-
         if (!chart) {
-
             console.warn("myChart 不存在");
-
             return;
         }
 
+        // 将文字拆分成竖排：每个字后面加换行符
+        const hintText = "👆 点击新增柱体，查看未来走势详情";
+        const verticalText = hintText.split('').join('\n');
+
         chart.setOption({
-
             graphic: {
-
                 elements: [
-
                     {
-
                         type: "text",
-
-                        left: "center",
-
-                        top: "92%",
-
+                        // 放在左侧垂直居中
+                        left: "2%",   
+                        top: "50%",   
                         silent: true,
-
                         z: 100,
-
                         style: {
-
-                            text: "👆 点击新增柱体，查看未来走势详情",
-
-                            fontSize: 16,
-
+                            text: verticalText, // 使用竖排文字
+                            fontSize: 14,       // 侧面排版建议字体稍微调小一点
                             fontWeight: "bold",
-
                             fill: "#ffffff",
-
-                            opacity: 0.95,
-
-                            textAlign: "center"
+                            opacity: 0.8,
+                            textAlign: "center", // 配合竖排，保持居中
+                            lineHeight: 20       // 控制竖排时字与字的行高
                         }
                     }
                 ]
             }
-
         });
 
     } catch (error) {
-
         console.warn(error);
-
     }
 }
 
@@ -325,7 +307,7 @@ function addHintToBarChart() {
 
 </body>
 
-};
+
 
 </script>
 
