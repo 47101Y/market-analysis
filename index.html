@@ -253,7 +253,7 @@ function addHintToBarChart() {
         }
 
         // 将文字拆分成竖排：每个字后面加换行符
-        const hintText = "👆 点击新增柱体，查看未来走势详情";
+        const hintText = " 点击新增柱体，查看未来走势详情";
         const verticalText = hintText.split('').join('\n');
 
         chart.setOption({
@@ -262,13 +262,13 @@ function addHintToBarChart() {
                     {
                         type: "text",
                         // 放在左侧垂直居中
-                        left: "2%",   
-                        top: "50%",   
+                        left: "10%",   
+                        top: "20%",   
                         silent: true,
                         z: 100,
                         style: {
                             text: verticalText, // 使用竖排文字
-                            fontSize: 14,       // 侧面排版建议字体稍微调小一点
+                            fontSize: 16,       // 侧面排版建议字体稍微调小一点
                             fontWeight: "bold",
                             fill: "#ffffff",
                             opacity: 0.8,
