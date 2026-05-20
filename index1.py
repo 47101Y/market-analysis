@@ -57,7 +57,7 @@ for _, row in df.iterrows():
             "open": row[f'open{i}'],
             "close": row[f'close{i}'],
             "pct": row[f'today_pct{i}'],
-            "cum_pct": (row.get(f'close{i}', 0) - base_open) / base_open
+            "cum_pct": (row[f'close{i}'] - base_open) / base_open
         })
 
     future_dict[date][stock] = future_list
