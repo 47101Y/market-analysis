@@ -47,7 +47,7 @@ for _, row in df.iterrows():
             "open": row[f'open'],
             "close": row[f'close'],
             "pct": row[f'today_pct'],
-            "cum_pct": '暂无'
+            "cum_pct": '0'
         })
 
     for i in range(1, 11):
@@ -310,7 +310,7 @@ chart_{bar.chart_id}.on('click', function(params) {{
                     color:${{row.cum_pct > 0 ? '#ff4d4f' : '#52c41a'}};
                     font-weight:bold;
                 ">
-            ${{(row.cum_pct * 100).toFixed(2)}}%
+                     ${{(row.cum_pct * 100).toFixed(2)}}%
 </td>
 
             </tr>
