@@ -44,10 +44,10 @@ for _, row in df.iterrows():
 
     future_list.append({
             "day": 0,
-            "open": row[f'open'],
-            "close": row[f'close'],
-            "pct": row[f'today_pct'],
-            "cum_pct": (row[f'close']-row[f'open'])/row[f'open']
+            "open": row['open'],
+            "close": row['close'],
+            "pct": row['today_pct'],
+            "cum_pct": (row['close'] - row['open']) / row['open']
         })
 
     for i in range(1, 11):
