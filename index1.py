@@ -39,12 +39,15 @@ for _, row in df.iterrows():
         future_dict[date] = {}
 
     future_list = []
-    
+
+    base_open = row['open1']
+
     future_list.append({
             "day": 0,
             "open": row[f'open'],
             "close": row[f'close'],
-            "pct": row[f'today_pct']
+            "pct": row[f'today_pct'],
+            "cum_pct": '暂无'
         })
 
     for i in range(1, 11):
@@ -53,7 +56,8 @@ for _, row in df.iterrows():
             "day": i,
             "open": row[f'open{i}'],
             "close": row[f'close{i}'],
-            "pct": row[f'today_pct{i}']
+            "pct": row[f'today_pct{i}'],
+            "cum_pct": (row[f'close{i}'] - base_open) / base_open
         })
 
     future_dict[date][stock] = future_list
@@ -249,7 +253,11 @@ chart_{bar.chart_id}.on('click', function(params) {{
             </th>
 
             <th style="padding:8px;border:1px solid #555;">
-                涨跌幅
+                当日涨跌幅
+            </th>
+
+            <th style="padding:8px;border:1px solid #555;">
+                自T+1日涨跌幅
             </th>
 
         </tr>
@@ -295,6 +303,15 @@ chart_{bar.chart_id}.on('click', function(params) {{
                 ">
                     ${{(row.pct * 100).toFixed(2)}}%
                 </td>
+
+                <td style="
+                    padding:6px;
+                    border:1px solid #444;
+                    color:${{row.cum_pct > 0 ? '#ff4d4f' : '#52c41a'}};
+                    font-weight:bold;
+                ">
+            ${{(row.cum_pct * 100).toFixed(2)}}%
+</td>
 
             </tr>
             `;
