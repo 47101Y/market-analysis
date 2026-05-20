@@ -8,11 +8,12 @@
     
 </head>
 <body >
-    <div id="167d050115834e8785d9456eaa129711" class="chart-container" style="width:1680px; height:780px; "></div>
+    <div id="9239233ea3d04caf97a4c255aa7006e6" class="chart-container" style="width:100%; height:100%; "></div>
     <script>
-        var chart_167d050115834e8785d9456eaa129711 = echarts.init(
-            document.getElementById('167d050115834e8785d9456eaa129711'), 'dark', {renderer: 'canvas', locale: 'ZH'});
-        var option_167d050115834e8785d9456eaa129711 = {
+        var chart_9239233ea3d04caf97a4c255aa7006e6 = echarts.init(
+            document.getElementById('9239233ea3d04caf97a4c255aa7006e6'), 'dark', {renderer: 'canvas', locale: 'ZH'});
+        var option_9239233ea3d04caf97a4c255aa7006e6 = {
+    "backgroundColor": "#111111",
     "animation": true,
     "animationThreshold": 2000,
     "animationDuration": 1000,
@@ -263,7 +264,10 @@
         "borderWidth": 0
     }
 };
-        chart_167d050115834e8785d9456eaa129711.setOption(option_167d050115834e8785d9456eaa129711);
+        chart_9239233ea3d04caf97a4c255aa7006e6.setOption(option_9239233ea3d04caf97a4c255aa7006e6);
+            window.addEventListener('resize', function(){
+                chart_9239233ea3d04caf97a4c255aa7006e6.resize();
+            })
     </script>
 </body>
 </html>

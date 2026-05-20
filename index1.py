@@ -140,8 +140,9 @@ result = result.fillna(0)
 
 bar = (
     Bar(init_opts=opts.InitOpts(
-        width='1680px',
-        height='780px',
+        width="100%",
+        height="100%",
+        bg_color="#111111",
         theme=ThemeType.DARK
     ))
     .add_xaxis(result['date'].tolist())
@@ -320,8 +321,9 @@ industry_count.columns = ['industry', 'count']
 
 heat_bar = (
     Bar(init_opts=opts.InitOpts(
-        width='1680px',
-        height='780px',
+        width="100%",
+        height="100%",
+        bg_color="#111111",
         theme=ThemeType.DARK
     ))
     .add_xaxis(industry_count['industry'].tolist())
@@ -341,7 +343,11 @@ heat_bar = (
 # =========================
 
 rotation_group = new_df.groupby(['date', 'industry']).size().reset_index(name='count')
-timeline = Timeline(init_opts=opts.InitOpts(width='1680px', height='780px', theme=ThemeType.DARK))
+timeline = Timeline(init_opts=opts.InitOpts(        width="100%",
+                                                    height="100%",
+                                                    bg_color="#111111", 
+                                                    theme=ThemeType.DARK))
+
 
 for d in sorted(rotation_group['date'].unique()):
     temp = rotation_group[rotation_group['date'] == d].sort_values(by='count', ascending=False)
