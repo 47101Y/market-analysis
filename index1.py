@@ -47,7 +47,7 @@ for _, row in df.iterrows():
             "open": row[f'open'],
             "close": row[f'close'],
             "pct": row[f'today_pct'],
-            "cum_pct": '0'
+            "cum_pct": (row[f'close']-row[f'open'])/row[f'open']
         })
 
     for i in range(1, 11):
@@ -252,7 +252,6 @@ chart_{bar.chart_id}.on('click', function(params) {{
                 收盘价
             </th>
 
-
             <th style="padding:8px;border:1px solid #555;">
                 自T+1日涨跌幅
             </th>
@@ -262,10 +261,6 @@ chart_{bar.chart_id}.on('click', function(params) {{
 
         future.forEach(function(row) {{
 
-            var pctColor =
-                row.pct > 0
-                ? '#ff4d4f'
-                : (row.pct < 0 ? '#52c41a' : 'white');
 
             html += `
 
