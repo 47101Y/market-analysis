@@ -252,9 +252,6 @@ chart_{bar.chart_id}.on('click', function(params) {{
                 收盘价
             </th>
 
-            <th style="padding:8px;border:1px solid #555;">
-                当日涨跌幅
-            </th>
 
             <th style="padding:8px;border:1px solid #555;">
                 自T+1日涨跌幅
@@ -295,14 +292,6 @@ chart_{bar.chart_id}.on('click', function(params) {{
                     ${{row.close}}
                 </td>
 
-                <td style="
-                    padding:6px;
-                    border:1px solid #444;
-                    color:${{pctColor}};
-                    font-weight:bold;
-                ">
-                    ${{(row.pct * 100).toFixed(2)}}%
-                </td>
 
                 <td style="
                     padding:6px;
