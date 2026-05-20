@@ -141,7 +141,7 @@ result = result.fillna(0)
 bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
-        height="100%",
+        height="820px",
         bg_color="#111111",
         theme=ThemeType.DARK
     ))
@@ -322,7 +322,7 @@ industry_count.columns = ['industry', 'count']
 heat_bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
-        height="100%",
+        height="820px",
         bg_color="#111111",
         theme=ThemeType.DARK
     ))
