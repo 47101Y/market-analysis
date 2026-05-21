@@ -376,6 +376,6 @@ timeline.add_schema(play_interval=1400, is_auto_play=True, is_loop_play=False)
 
 bar.render("bar.html")
 heat_bar.render("heat.html")
-timeline.render("timeline.html")
+timeline.render("timeline_v2.html")
 
 print("Dashboard 生成完成！")
