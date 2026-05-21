@@ -4,6 +4,7 @@ from pyecharts import options as opts
 from pyecharts.globals import ThemeType
 from collections import defaultdict
 from pyecharts.globals import CurrentConfig
+import json
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 
@@ -18,68 +19,107 @@ strong_df = pd.read_csv('强者恒强.csv')
 future_df = pd.read_csv('new_stock_future_10days.csv')
 
 
+#宽表格重现
+df = pd.read_csv("wide_stock_data.csv")
+
+# 读取阈值文件
+threshold_df = pd.read_csv('top50_daily_threshold.csv')
+
+# 关键步骤：强制将 date 列转为 datetime，再强制转为标准字符串格式 YYYY-MM-DD
+threshold_df['date'] = pd.to_datetime(threshold_df['date']).dt.strftime('%Y-%m-%d')
+
+# 重新构建字典，此时 Key 一定是 '2026-03-23' 这种纯字符串格式
+threshold_dict = dict(zip(threshold_df['date'], threshold_df['amount_50th']))
+
+threshold_json = json.dumps(threshold_dict)
+
+
 # =========================
 # 未来10日走势数据
 # =========================
 
-future_dict = defaultdict(dict)
 
-for (d, stock), group in future_df.groupby(['add_date', 'stock']):
-    group = group.sort_values(by='trade_date')
-    future_dict[str(d)][str(stock)] = {
-        'dates': group['trade_date'].tolist(),
-        'open': group['open'].tolist(),
-        'close': group['close'].tolist(),
-        'pct': ((group['close'] - group['open']) / group['open']).round(2).tolist()
-    }
+future_dict = {}
+
+for _, row in df.iterrows():
+
+    date = str(row['add_date'])
+    stock = row['stock']
+
+    if date not in future_dict:
+        future_dict[date] = {}
+
+    future_list = []
+
+    base_open = row['open1']
+
+    future_list.append({
+            "day": 0,
+            "open": row['open'],
+            "close": row['close'],
+            "pct": row['today_pct'],
+            "cum_pct": (row['close'] - row['open']) / row['open']
+        })
+
+    for i in range(1, 11):
+
+        future_list.append({
+            "day": i,
+            "open": row[f'open{i}'],
+            "close": row[f'close{i}'],
+            "pct": row[f'today_pct{i}'],
+            "cum_pct": (row[f'close{i}'] - base_open) / base_open
+        })
+
+    future_dict[date][stock] = future_list
 
 
 # =========================
 # 弱转强详情字典
 # =========================
 
-weak_detail = defaultdict(list)
+# weak_detail = defaultdict(list)
 
-for _, row in weak_df.iterrows():
-    date = row['日期']
-    stock_info = f"""
-                    股票代码：{row['股票代码']}
-                    名称：{row['名称']}
-                    行业：{row['行业']}
-                    成交金额（亿）：{row['成交金额（亿）']}
+# for _, row in weak_df.iterrows():
+#     date = row['日期']
+#     stock_info = f"""
+#                     股票代码：{row['股票代码']}
+#                     名称：{row['名称']}
+#                     行业：{row['行业']}
+#                     成交金额（亿）：{row['成交金额（亿）']}
 
-                    T日收盘价：{row['T日收盘价']}
-                    T-1日收盘价：{row['T-1日收盘价']}
+#                     T日收盘价：{row['T日收盘价']}
+#                     T-1日收盘价：{row['T-1日收盘价']}
 
-                    T日涨跌幅：{row['T日涨跌幅']}
-                    T+1日涨跌幅：{row['T+1日涨跌幅']}
-                    T+2日涨跌幅：{row['T+2日涨跌幅']}
-    """
-    weak_detail[date].append(stock_info)
+#                     T日涨跌幅：{row['T日涨跌幅']}
+#                     T+1日涨跌幅：{row['T+1日涨跌幅']}
+#                     T+2日涨跌幅：{row['T+2日涨跌幅']}
+#     """
+#     weak_detail[date].append(stock_info)
 
 
 # =========================
 # 强者恒强详情字典
 # =========================
 
-strong_detail = defaultdict(list)
+# strong_detail = defaultdict(list)
 
-for _, row in strong_df.iterrows():
-    date = row['日期']
-    stock_info = f"""
-                    股票代码：{row['股票代码']}
-                    名称：{row['名称']}
-                    行业：{row['行业']}
-                    成交金额（亿）：{row['成交金额（亿）']}
+# for _, row in strong_df.iterrows():
+#     date = row['日期']
+#     stock_info = f"""
+#                     股票代码：{row['股票代码']}
+#                     名称：{row['名称']}
+#                     行业：{row['行业']}
+#                     成交金额（亿）：{row['成交金额（亿）']}
 
-                    T日收盘价：{row['T日收盘价']}
-                    T-1日收盘价：{row['T-1日收盘价']}
+#                     T日收盘价：{row['T日收盘价']}
+#                     T-1日收盘价：{row['T-1日收盘价']}
 
-                    T日涨跌幅：{row['T日涨跌幅']}
-                    T+1日涨跌幅：{row['T+1日涨跌幅']}
-                    T+2日涨跌幅：{row['T+2日涨跌幅']}
-    """
-    strong_detail[date].append(stock_info)
+#                     T日涨跌幅：{row['T日涨跌幅']}
+#                     T+1日涨跌幅：{row['T+1日涨跌幅']}
+#                     T+2日涨跌幅：{row['T+2日涨跌幅']}
+#     """
+#     strong_detail[date].append(stock_info)
 
 
 # =========================
@@ -115,76 +155,157 @@ result = result.fillna(0)
 
 bar = (
     Bar(init_opts=opts.InitOpts(
-        width='1680px',
-        height='780px',
+        width="100%",
+        height="720px",
         theme=ThemeType.DARK
     ))
     .add_xaxis(result['date'].tolist())
+
     .add_yaxis('新增', result['新增'].tolist())
     .add_yaxis('弱转强', result['弱转强'].tolist())
     .add_yaxis('强者恒强', result['强者恒强'].tolist())
+
     .set_global_opts(
+
         title_opts=opts.TitleOpts(
             title='每日成交额TOP50统计',
             subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,' \
             '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
         ),
+
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
-        xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
+
+        xaxis_opts=opts.AxisOpts(
+            axislabel_opts=opts.LabelOpts(rotate=45)
+        ),
+
         datazoom_opts=[opts.DataZoomOpts()],
-        legend_opts=opts.LegendOpts(pos_top='10%')
+
+        legend_opts=opts.LegendOpts(pos_top='10%'),
+
+        # =========================
+        # 图内提示词
+        # =========================
+
+        graphic_opts=[
+
+            opts.GraphicGroup(
+
+                graphic_item=opts.GraphicItem(
+                    right="3%",
+                    top="28%",
+                    z=100
+                ),
+
+                children=[
+
+                    opts.GraphicText(
+
+                        graphic_item=opts.GraphicItem(
+                            left=0,
+                            top=0
+                        ),
+
+                        graphic_textstyle_opts=opts.GraphicTextStyleOpts(
+
+                            text='点\n击\n新\n增\n柱\n体\n\n查\n看\n未\n来\n走\n势\n详\n情',
+
+                            font='bold 18px Microsoft YaHei',
+
+                            graphic_basicstyle_opts=opts.GraphicBasicStyleOpts(
+                                fill='rgba(255,255,255,0.75)'
+                            )
+                        )
+                    )
+                ]
+            )
+        ]
     )
 )
 
 # 点击事件
-bar.add_js_funcs(f"""
-var futureData = {dict(future_dict)};
-var newData = {dict(new_detail)};
+# 点击事件
+# 点击事件（终极无错版）
+bar.add_js_funcs("""
 
-chart_{bar.chart_id}.on('click', function(params) {{
-    if(params.seriesName !== '新增'){{ return; }}
+window.myChart = chart_""" + bar.chart_id + """;
+
+var futureData = """ + json.dumps(future_dict, ensure_ascii=False) + """;
+var newData = """ + json.dumps(dict(new_detail), ensure_ascii=False) + """;
+var thresholdData = """ + threshold_json + """;
+
+chart_""" + bar.chart_id + """.on('click', function(params) {
+
+    if(params.seriesName !== '新增') {
+        return;
+    }
+
     var date = params.name;
     var stocks = newData[date];
-    if(!stocks){{ return; }}
+
+    if(!stocks) {
+        return;
+    }
 
     var area = parent.document.getElementById('futureChartArea');
     area.innerHTML = "";
 
-    stocks.forEach(function(item){{
+    // ======================
+    // 显示第50名成交额
+    // ======================
+    var threshold = thresholdData[date] || 0;
+    var infoDiv = parent.document.createElement('div');
+    infoDiv.style.width = '100%';
+    infoDiv.style.padding = '15px';
+    infoDiv.style.color = '#fff';
+    infoDiv.style.background = '#1f1f1f';
+    infoDiv.style.borderRadius = '10px';
+    infoDiv.style.marginBottom = '20px';
+    infoDiv.innerHTML = '<h3>' + date + ' 第50名成交额：' + threshold + ' 亿元</h3>';
+    area.appendChild(infoDiv);
+
+    stocks.forEach(function(item) {
+
         var future = futureData[String(date)][String(item.stock)];
-        if(!future){{ return; }}
+
+        if(!future) {
+            return;
+        }
 
         var div = parent.document.createElement('div');
-        div.className = 'futureChartBox';
+        div.style.marginBottom = '30px';
         area.appendChild(div);
 
-        var html = `
-        <div style="color:white;padding:10px;">
-        <h3 style="text-align:center;margin-bottom:15px;">${{item.name}}</h3>
-        <table style="width:100%;border-collapse:collapse;text-align:center;font-size:13px;">
-        <tr style="background:#333;">
-            <th style="padding:6px;border:1px solid #555;">日期</th>
-            <th style="padding:6px;border:1px solid #555;">开盘价</th>
-            <th style="padding:6px;border:1px solid #555;">收盘价</th>
-            <th style="padding:6px;border:1px solid #555;">当日增跌幅</th>
-        </tr>
-        `;
+        var html = '';
+        html += '<div style="background:#1f1f1f; padding:15px; border-radius:10px; color:white;">';
+        html += '<h3 style="text-align:center; margin-bottom:15px; color:#ffd666;">';
+        html += item.name + '（' + item.stock + '）';
+        html += '</h3>';
+        html += '<table style="width:100%; border-collapse:collapse; text-align:center; font-size:13px;">';
+        html += '<tr style="background:#333;">';
+        html += '<th style="padding:8px; border:1px solid #555;">第N日</th>';
+        html += '<th style="padding:8px; border:1px solid #555;">开盘价</th>';
+        html += '<th style="padding:8px; border:1px solid #555;">收盘价</th>';
+        html += '<th style="padding:8px; border:1px solid #555;">自T+1日涨跌幅</th>';
+        html += '</tr>';
 
-        for(var i=0; i<future.dates.length; i++){{
-            var pctColor = future.pct[i] > 0 ? '#ff4d4f' : (future.pct[i] < 0 ? '#52c41a' : 'white');
-            html += `
-            <tr>
-                <td style="padding:6px;border:1px solid #444;">${{future.dates[i]}}</td>
-                <td style="padding:6px;border:1px solid #444;">${{future.open[i]}}</td>
-                <td style="padding:6px;border:1px solid #444;">${{future.close[i]}}</td>
-                <td style="padding:6px;border:1px solid #444;color: ${{pctColor}};">${{future.pct[i]}}</td>
-            </tr>`;
-        }}
+        future.forEach(function(row) {
+            html += '<tr>';
+            html += '<td style="padding:6px; border:1px solid #444;">' + row.day + '</td>';
+            html += '<td style="padding:6px; border:1px solid #444;">' + row.open + '</td>';
+            html += '<td style="padding:6px; border:1px solid #444;">' + row.close + '</td>';
+            var color = row.cum_pct > 0 ? '#ff4d4f' : '#52c41a';
+            var pct = (row.cum_pct * 100).toFixed(2) + '%';
+            html += '<td style="padding:6px; border:1px solid #444; color:' + color + '; font-weight:bold;">' + pct + '</td>';
+            html += '</tr>';
+        });
 
-        html += `</table></div>`;
+        html += '</table></div>';
         div.innerHTML = html;
-    }});
-}});
+
+    });
+
+});
 """)
 
 
@@ -197,8 +318,8 @@ industry_count.columns = ['industry', 'count']
 
 heat_bar = (
     Bar(init_opts=opts.InitOpts(
-        width='1680px',
-        height='780px',
+        width="100%",
+        height="760px",
         theme=ThemeType.DARK
     ))
     .add_xaxis(industry_count['industry'].tolist())
@@ -218,7 +339,10 @@ heat_bar = (
 # =========================
 
 rotation_group = new_df.groupby(['date', 'industry']).size().reset_index(name='count')
-timeline = Timeline(init_opts=opts.InitOpts(width='1680px', height='780px', theme=ThemeType.DARK))
+timeline = Timeline(init_opts=opts.InitOpts(        width="100%",
+                                                    height="760px",
+                                                    theme=ThemeType.DARK))
+
 
 for d in sorted(rotation_group['date'].unique()):
     temp = rotation_group[rotation_group['date'] == d].sort_values(by='count', ascending=False)
@@ -246,6 +370,7 @@ timeline.add_schema(play_interval=1400, is_auto_play=True, is_loop_play=False)
 
 bar.render("bar.html")
 heat_bar.render("heat.html")
-timeline.render("timeline.html")
+timeline.render("timeline_v2.html")
 
 print("Dashboard 生成完成！")
+            
