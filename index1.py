@@ -343,7 +343,7 @@ heat_bar = (
 
 rotation_group = new_df.groupby(['date', 'industry']).size().reset_index(name='count')
 timeline = Timeline(init_opts=opts.InitOpts(        width="100%",
-                                                    height="700px",
+                                                    height="6600px",
                                                     theme=ThemeType.DARK))
 
 
