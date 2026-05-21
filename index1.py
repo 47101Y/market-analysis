@@ -145,7 +145,7 @@ result = result.fillna(0)
 bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
-        height="720px",
+        height="800px",
         theme=ThemeType.DARK
     ))
     .add_xaxis(result['date'].tolist())
@@ -155,7 +155,7 @@ bar = (
     .set_global_opts(
         title_opts=opts.TitleOpts(
             title='每日成交额TOP50统计',
-            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,' \
+            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n' 
             '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
         ),
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
