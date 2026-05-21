@@ -153,10 +153,6 @@ result = result.merge(weak_count, on='date', how='left')
 result = result.merge(strong_count, on='date', how='left')
 result = result.fillna(0)
 
-# =========================
-# 第一部分：每日统计柱状图（修改后）
-# =========================
-
 bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
@@ -176,13 +172,13 @@ bar = (
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
         xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
         datazoom_opts=[opts.DataZoomOpts()],
-        legend_opts=opts.LegendOpts(pos_top='10%'),
-        
+        legend_opts=opts.LegendOpts(pos_top='10%')
     )
 )
 
 # 点击事件
-
+# 点击事件
+# 点击事件（终极无错版）
 bar.add_js_funcs("""
 
 window.myChart = chart_""" + bar.chart_id + """;
@@ -330,3 +326,4 @@ heat_bar.render("heat.html")
 timeline.render("timeline_v2.html")
 
 print("Dashboard 生成完成！")
+            
