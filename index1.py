@@ -153,6 +153,10 @@ result = result.merge(weak_count, on='date', how='left')
 result = result.merge(strong_count, on='date', how='left')
 result = result.fillna(0)
 
+# =========================
+# 第一部分：每日统计柱状图（修改后）
+# =========================
+
 bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
@@ -172,14 +176,32 @@ bar = (
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
         xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
         datazoom_opts=[opts.DataZoomOpts()],
-        legend_opts=opts.LegendOpts(pos_top='10%')
+        legend_opts=opts.LegendOpts(pos_top='10%'),
+        # 新增：直接内置提示文字，和图表同时渲染
+        graphic_opts=opts.GraphicOpts(
+            elements=[
+                opts.GraphicTextOpts(
+                    right="6.5%",
+                    top="30%",
+                    silent=True,  # 不响应鼠标事件
+                    z=100,        # 层级最高，不会被其他元素遮挡
+                    style=opts.GraphicTextStyleOpts(
+                        text="点\n击\n新\n增\n柱\n体\n，\n查\n看\n未\n来\n走\n势\n详\n情",
+                        font_size=16,
+                        font_weight="bold",
+                        fill="#ffffff",
+                        opacity=0.8,
+                        text_align="center",
+                        line_height=20  # 控制竖排文字的行间距
+                    )
+                )
+            ]
+        )
     )
 )
 
 # 点击事件
-# 点击事件
-# 点击事件
-# 点击事件（终极无错版）
+
 bar.add_js_funcs("""
 
 window.myChart = chart_""" + bar.chart_id + """;
