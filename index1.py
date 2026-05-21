@@ -22,6 +22,10 @@ future_df = pd.read_csv('new_stock_future_10days.csv')
 #宽表格重现
 df = pd.read_csv("wide_stock_data.csv")
 
+#增加第50名成交额
+threshold_df = pd.read_csv('top50_daily_threshold.csv')
+threshold_dict = dict(zip(threshold_df['date'], threshold_df['amount_50th']))
+
 
 # =========================
 # 未来10日走势数据
@@ -180,6 +184,7 @@ window.myChart = chart_{bar.chart_id};
 
 var futureData = {json.dumps(future_dict, ensure_ascii=False)};
 var newData = {json.dumps(dict(new_detail), ensure_ascii=False)};
+var thresholdData = {json.dumps(threshold_dict, ensure_ascii=False)};
 
 chart_{bar.chart_id}.on('click', function(params) {{
 
@@ -197,6 +202,18 @@ chart_{bar.chart_id}.on('click', function(params) {{
 
     var area = parent.document.getElementById('futureChartArea');
 
+
+    var threshold = thresholdData[date] || 0;
+    var info = document.createElement('div');
+    info.style.width = '100%';
+    info.style.padding = '15px';
+    info.style.color = '#fff';
+    info.style.background = '#1f1f1f';
+    info.style.borderRadius = '10px';
+    info.style.marginBottom = '20px';
+    info.innerHTML = `<h3>${date} 第50名成交额：${threshold} 亿元</h3>`;
+    area.appendChild(info);    
+    
     area.innerHTML = "";
 
     stocks.forEach(function(item) {{
