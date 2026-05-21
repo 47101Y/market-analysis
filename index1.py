@@ -22,9 +22,16 @@ future_df = pd.read_csv('new_stock_future_10days.csv')
 #宽表格重现
 df = pd.read_csv("wide_stock_data.csv")
 
-#增加第50名成交额
+# 读取阈值文件
 threshold_df = pd.read_csv('top50_daily_threshold.csv')
+
+# 关键步骤：强制将 date 列转为 datetime，再强制转为标准字符串格式 YYYY-MM-DD
+threshold_df['date'] = pd.to_datetime(threshold_df['date']).dt.strftime('%Y-%m-%d')
+
+# 重新构建字典，此时 Key 一定是 '2026-03-23' 这种纯字符串格式
 threshold_dict = dict(zip(threshold_df['date'], threshold_df['amount_50th']))
+
+threshold_json = json.dumps(threshold_dict)
 
 
 # =========================
@@ -170,164 +177,91 @@ bar = (
 )
 
 # 点击事件
-bar.add_js_funcs(f"""
+# 点击事件
+# 点击事件
+# 点击事件（终极无错版）
+bar.add_js_funcs("""
 
-// ======================
-// 暴露 chart 给父页面
-// ======================
+window.myChart = chart_""" + bar.chart_id + """;
 
-window.myChart = chart_{bar.chart_id};
+var futureData = """ + json.dumps(future_dict, ensure_ascii=False) + """;
+var newData = """ + json.dumps(dict(new_detail), ensure_ascii=False) + """;
+var thresholdData = """ + threshold_json + """;
 
-// ======================
-// 数据
-// ======================
+chart_""" + bar.chart_id + """.on('click', function(params) {
 
-var futureData = {json.dumps(future_dict, ensure_ascii=False)};
-var newData = {json.dumps(dict(new_detail), ensure_ascii=False)};
-var thresholdData = {json.dumps(threshold_dict, ensure_ascii=False)};
-
-chart_{bar.chart_id}.on('click', function(params) {{
-
-    if(params.seriesName !== '新增') {{
+    if(params.seriesName !== '新增') {
         return;
-    }}
+    }
 
     var date = params.name;
-
     var stocks = newData[date];
 
-    if(!stocks) {{
+    if(!stocks) {
         return;
-    }}
+    }
 
     var area = parent.document.getElementById('futureChartArea');
-
-
-    var threshold = thresholdData[date] || 0;
-    var info = document.createElement('div');
-    info.style.width = '100%';
-    info.style.padding = '15px';
-    info.style.color = '#fff';
-    info.style.background = '#1f1f1f';
-    info.style.borderRadius = '10px';
-    info.style.marginBottom = '20px';
-    info.innerHTML = `<h3>${date} 第50名成交额：${threshold} 亿元</h3>`;
-    area.appendChild(info);    
-    
     area.innerHTML = "";
 
-    stocks.forEach(function(item) {{
+    // ======================
+    // 显示第50名成交额
+    // ======================
+    var threshold = thresholdData[date] || 0;
+    var infoDiv = parent.document.createElement('div');
+    infoDiv.style.width = '100%';
+    infoDiv.style.padding = '15px';
+    infoDiv.style.color = '#fff';
+    infoDiv.style.background = '#1f1f1f';
+    infoDiv.style.borderRadius = '10px';
+    infoDiv.style.marginBottom = '20px';
+    infoDiv.innerHTML = '<h3>' + date + ' 第50名成交额：' + threshold + ' 亿元</h3>';
+    area.appendChild(infoDiv);
+
+    stocks.forEach(function(item) {
 
         var future = futureData[String(date)][String(item.stock)];
 
-        if(!future) {{
+        if(!future) {
             return;
-        }}
+        }
 
         var div = parent.document.createElement('div');
-
         div.style.marginBottom = '30px';
-
         area.appendChild(div);
 
-        var html = `
+        var html = '';
+        html += '<div style="background:#1f1f1f; padding:15px; border-radius:10px; color:white;">';
+        html += '<h3 style="text-align:center; margin-bottom:15px; color:#ffd666;">';
+        html += item.name + '（' + item.stock + '）';
+        html += '</h3>';
+        html += '<table style="width:100%; border-collapse:collapse; text-align:center; font-size:13px;">';
+        html += '<tr style="background:#333;">';
+        html += '<th style="padding:8px; border:1px solid #555;">第N日</th>';
+        html += '<th style="padding:8px; border:1px solid #555;">开盘价</th>';
+        html += '<th style="padding:8px; border:1px solid #555;">收盘价</th>';
+        html += '<th style="padding:8px; border:1px solid #555;">自T+1日涨跌幅</th>';
+        html += '</tr>';
 
-        <div style="
-            background:#1f1f1f;
-            padding:15px;
-            border-radius:10px;
-            color:white;
-        ">
+        future.forEach(function(row) {
+            html += '<tr>';
+            html += '<td style="padding:6px; border:1px solid #444;">' + row.day + '</td>';
+            html += '<td style="padding:6px; border:1px solid #444;">' + row.open + '</td>';
+            html += '<td style="padding:6px; border:1px solid #444;">' + row.close + '</td>';
+            var color = row.cum_pct > 0 ? '#ff4d4f' : '#52c41a';
+            var pct = (row.cum_pct * 100).toFixed(2) + '%';
+            html += '<td style="padding:6px; border:1px solid #444; color:' + color + '; font-weight:bold;">' + pct + '</td>';
+            html += '</tr>';
+        });
 
-        <h3 style="
-            text-align:center;
-            margin-bottom:15px;
-            color:#ffd666;
-        ">
-            ${{item.name}}（${{item.stock}}）
-        </h3>
-
-        <table style="
-            width:100%;
-            border-collapse:collapse;
-            text-align:center;
-            font-size:13px;
-        ">
-
-        <tr style="background:#333;">
-
-            <th style="padding:8px;border:1px solid #555;">
-                第N日
-            </th>
-
-            <th style="padding:8px;border:1px solid #555;">
-                开盘价
-            </th>
-
-            <th style="padding:8px;border:1px solid #555;">
-                收盘价
-            </th>
-
-            <th style="padding:8px;border:1px solid #555;">
-                自T+1日涨跌幅
-            </th>
-
-        </tr>
-        `;
-
-        future.forEach(function(row) {{
-
-
-            html += `
-
-            <tr>
-
-                <td style="
-                    padding:6px;
-                    border:1px solid #444;
-                ">
-                    ${{row.day}}
-                </td>
-
-                <td style="
-                    padding:6px;
-                    border:1px solid #444;
-                ">
-                    ${{row.open}}
-                </td>
-
-                <td style="
-                    padding:6px;
-                    border:1px solid #444;
-                ">
-                    ${{row.close}}
-                </td>
-
-
-                <td style="
-                    padding:6px;
-                    border:1px solid #444;
-                    color:${{row.cum_pct > 0 ? '#ff4d4f' : '#52c41a'}};
-                    font-weight:bold;
-                ">
-                     ${{(row.cum_pct * 100).toFixed(2)}}%
-</td>
-
-            </tr>
-            `;
-        }});
-
-        html += `
-        </table>
-        </div>
-        `;
-
+        html += '</table></div>';
         div.innerHTML = html;
 
-    }});
+    });
 
-}});
+});
 """)
+
 
 # =========================
 # 第二部分：行业热力图
@@ -340,7 +274,6 @@ heat_bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
         height="720px",
-        bg_color="#111111",
         theme=ThemeType.DARK
     ))
     .add_xaxis(industry_count['industry'].tolist())
@@ -362,7 +295,6 @@ heat_bar = (
 rotation_group = new_df.groupby(['date', 'industry']).size().reset_index(name='count')
 timeline = Timeline(init_opts=opts.InitOpts(        width="100%",
                                                     height="720px",
-                                                    bg_color="#111111", 
                                                     theme=ThemeType.DARK))
 
 
