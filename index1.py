@@ -67,48 +67,48 @@ for _, row in df.iterrows():
 # 弱转强详情字典
 # =========================
 
-weak_detail = defaultdict(list)
+# weak_detail = defaultdict(list)
 
-for _, row in weak_df.iterrows():
-    date = row['日期']
-    stock_info = f"""
-                    股票代码：{row['股票代码']}
-                    名称：{row['名称']}
-                    行业：{row['行业']}
-                    成交金额（亿）：{row['成交金额（亿）']}
+# for _, row in weak_df.iterrows():
+#     date = row['日期']
+#     stock_info = f"""
+#                     股票代码：{row['股票代码']}
+#                     名称：{row['名称']}
+#                     行业：{row['行业']}
+#                     成交金额（亿）：{row['成交金额（亿）']}
 
-                    T日收盘价：{row['T日收盘价']}
-                    T-1日收盘价：{row['T-1日收盘价']}
+#                     T日收盘价：{row['T日收盘价']}
+#                     T-1日收盘价：{row['T-1日收盘价']}
 
-                    T日涨跌幅：{row['T日涨跌幅']}
-                    T+1日涨跌幅：{row['T+1日涨跌幅']}
-                    T+2日涨跌幅：{row['T+2日涨跌幅']}
-    """
-    weak_detail[date].append(stock_info)
+#                     T日涨跌幅：{row['T日涨跌幅']}
+#                     T+1日涨跌幅：{row['T+1日涨跌幅']}
+#                     T+2日涨跌幅：{row['T+2日涨跌幅']}
+#     """
+#     weak_detail[date].append(stock_info)
 
 
 # =========================
 # 强者恒强详情字典
 # =========================
 
-strong_detail = defaultdict(list)
+# strong_detail = defaultdict(list)
 
-for _, row in strong_df.iterrows():
-    date = row['日期']
-    stock_info = f"""
-                    股票代码：{row['股票代码']}
-                    名称：{row['名称']}
-                    行业：{row['行业']}
-                    成交金额（亿）：{row['成交金额（亿）']}
+# for _, row in strong_df.iterrows():
+#     date = row['日期']
+#     stock_info = f"""
+#                     股票代码：{row['股票代码']}
+#                     名称：{row['名称']}
+#                     行业：{row['行业']}
+#                     成交金额（亿）：{row['成交金额（亿）']}
 
-                    T日收盘价：{row['T日收盘价']}
-                    T-1日收盘价：{row['T-1日收盘价']}
+#                     T日收盘价：{row['T日收盘价']}
+#                     T-1日收盘价：{row['T-1日收盘价']}
 
-                    T日涨跌幅：{row['T日涨跌幅']}
-                    T+1日涨跌幅：{row['T+1日涨跌幅']}
-                    T+2日涨跌幅：{row['T+2日涨跌幅']}
-    """
-    strong_detail[date].append(stock_info)
+#                     T日涨跌幅：{row['T日涨跌幅']}
+#                     T+1日涨跌幅：{row['T+1日涨跌幅']}
+#                     T+2日涨跌幅：{row['T+2日涨跌幅']}
+#     """
+#     strong_detail[date].append(stock_info)
 
 
 # =========================
@@ -146,7 +146,6 @@ bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
         height="720px",
-        bg_color="#111111",
         theme=ThemeType.DARK
     ))
     .add_xaxis(result['date'].tolist())
