@@ -134,34 +134,40 @@ function showImage() {
 
 function addHintToBarChart() {
     const iframe = document.getElementById("frame");
-    try {
-        const chart = iframe.contentWindow.myChart;
-        if (!chart) return;
+    if (!iframe) return;
 
-        const hintText = " 点击新增柱体，查看未来走势详情";
-        const verticalText = hintText.split('').join('\n');
+    // 轮询等待图表加载完成
+    const timer = setInterval(() => {
+        try {
+            const chart = iframe.contentWindow.myChart;
+            if (chart) {
+                const hintText = " 点击新增柱体，查看未来走势详情";
+                const verticalText = hintText.split('').join('\n');
 
-        chart.setOption({
-            graphic: {
-                elements: [{
-                    type: "text",
-                    right: "6.5%",
-                    top: "30%",
-                    silent: true,
-                    z: 100,
-                    style: {
-                        text: verticalText,
-                        fontSize: 16,
-                        fontWeight: "bold",
-                        fill: "#ffffff",
-                        opacity: 0.8,
-                        textAlign: "center",
-                        lineHeight: 20
+                chart.setOption({
+                    graphic: {
+                        elements: [{
+                            type: "text",
+                            right: "6.5%",
+                            top: "30%",
+                            silent: true,
+                            z: 100,
+                            style: {
+                                text: verticalText,
+                                fontSize: 16,
+                                fontWeight: "bold",
+                                fill: "#ffffff",
+                                opacity: 0.8,
+                                textAlign: "center",
+                                lineHeight: 20
+                            }
+                        }]
                     }
-                }]
+                });
+                clearInterval(timer); // 找到后停止轮询
             }
-        });
-    } catch (error) {}
+        } catch (e) {}
+    }, 100);
 }
 
 window.onload = function () {
