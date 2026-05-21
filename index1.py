@@ -145,7 +145,8 @@ result = result.fillna(0)
 bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
-        height="660px",
+        height="720px",
+        bg_color="#111111",
         theme=ThemeType.DARK
     ))
     .add_xaxis(result['date'].tolist())
@@ -155,7 +156,7 @@ bar = (
     .set_global_opts(
         title_opts=opts.TitleOpts(
             title='每日成交额TOP50统计',
-            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n' 
+            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,' \
             '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
         ),
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
@@ -322,7 +323,8 @@ industry_count.columns = ['industry', 'count']
 heat_bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
-        height="700px",
+        height="720px",
+        bg_color="#111111",
         theme=ThemeType.DARK
     ))
     .add_xaxis(industry_count['industry'].tolist())
@@ -343,7 +345,8 @@ heat_bar = (
 
 rotation_group = new_df.groupby(['date', 'industry']).size().reset_index(name='count')
 timeline = Timeline(init_opts=opts.InitOpts(        width="100%",
-                                                    height="6600px",
+                                                    height="720px",
+                                                    bg_color="#111111", 
                                                     theme=ThemeType.DARK))
 
 
