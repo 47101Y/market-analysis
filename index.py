@@ -156,7 +156,7 @@ result = result.fillna(0)
 bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
-        height="720px",
+        height="7810px",
         theme=ThemeType.DARK
     ))
     .add_xaxis(result['date'].tolist())
