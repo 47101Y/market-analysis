@@ -1,32 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="dashboard.css">
-    <title>新增股票行业热力分析</title>
-    <style>
-      html, body.chart-page {
-        margin: 0;
-        padding: 0;
-        background: #0b0e14 !important;
-        font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
-      }
-      .chart-container {
-        background: #0b0e14 !important;
-      }
-    </style>
     <meta charset="UTF-8">
     <title>Awesome-pyecharts</title>
                 <script type="text/javascript" src="https://assets.pyecharts.org/assets/v5/echarts.min.js"></script>
 
     
 </head>
-<body class="chart-page">
-    <div id="6c6d0ff6cd5848cbab85a550b0cbf68c" class="chart-container" style="width:100%; height:720px; "></div>
+<body >
+    <div id="a49c9cb973244967936821e8b957a136" class="chart-container" style="width:100%; height:760px; "></div>
     <script>
-        var chart_6c6d0ff6cd5848cbab85a550b0cbf68c = echarts.init(
-            document.getElementById('6c6d0ff6cd5848cbab85a550b0cbf68c'), null, {renderer: 'canvas', locale: 'ZH'});
-        var option_6c6d0ff6cd5848cbab85a550b0cbf68c = {
-    "backgroundColor": "#0b0e14",
+        var chart_a49c9cb973244967936821e8b957a136 = echarts.init(
+            document.getElementById('a49c9cb973244967936821e8b957a136'), 'dark', {renderer: 'canvas', locale: 'ZH'});
+        var option_a49c9cb973244967936821e8b957a136 = {
     "animation": true,
     "animationThreshold": 2000,
     "animationDuration": 1000,
@@ -89,9 +75,6 @@
                 "margin": 8,
                 "richInheritPlainLabel": true,
                 "valueAnimation": false
-            },
-            "itemStyle": {
-                "color": "#3b82f6"
             }
         }
     ],
@@ -102,16 +85,10 @@
             ],
             "selected": {},
             "show": true,
-            "top": "8%",
             "padding": 5,
             "itemGap": 10,
             "itemWidth": 25,
             "itemHeight": 14,
-            "textStyle": {
-                "color": "#9aa4b8",
-                "fontSize": 12,
-                "richInheritPlainLabel": true
-            },
             "backgroundColor": "transparent",
             "borderColor": "#ccc",
             "borderRadius": 0,
@@ -131,7 +108,7 @@
     ],
     "tooltip": {
         "show": true,
-        "trigger": "axis",
+        "trigger": "item",
         "triggerOn": "mousemove|click",
         "axisPointer": {
             "type": "line"
@@ -146,12 +123,9 @@
         "transitionDuration": 0.4,
         "displayTransition": true,
         "textStyle": {
-            "color": "#e8ecf4",
-            "fontSize": 12,
+            "fontSize": 14,
             "richInheritPlainLabel": true
         },
-        "backgroundColor": "rgba(24, 30, 42, 0.96)",
-        "borderColor": "#2a3344",
         "borderWidth": 0,
         "padding": 5,
         "order": "seriesAsc"
@@ -164,22 +138,10 @@
             "nameGap": 15,
             "nameTruncate": {},
             "nameMoveOverlap": true,
-            "axisLine": {
-                "show": true,
-                "onZero": true,
-                "onZeroAxisIndex": 0,
-                "lineStyle": {
-                    "show": false,
-                    "color": "#2a3344"
-                }
-            },
             "axisLabel": {
                 "show": true,
-                "color": "#9aa4b8",
                 "rotate": 45,
                 "margin": 8,
-                "fontSize": 11,
-                "fontFamily": "Microsoft YaHei",
                 "richInheritPlainLabel": true,
                 "valueAnimation": false
             },
@@ -192,9 +154,7 @@
             "splitLine": {
                 "show": true,
                 "lineStyle": {
-                    "show": false,
-                    "opacity": 0.35,
-                    "color": "#2a3344"
+                    "show": false
                 }
             },
             "animation": true,
@@ -242,25 +202,6 @@
             "nameGap": 15,
             "nameTruncate": {},
             "nameMoveOverlap": true,
-            "axisLine": {
-                "show": true,
-                "onZero": true,
-                "onZeroAxisIndex": 0,
-                "lineStyle": {
-                    "show": false,
-                    "color": "#2a3344"
-                }
-            },
-            "axisLabel": {
-                "show": true,
-                "color": "#9aa4b8",
-                "rotate": 0,
-                "margin": 8,
-                "fontSize": 11,
-                "fontFamily": "Microsoft YaHei",
-                "richInheritPlainLabel": true,
-                "valueAnimation": false
-            },
             "inverse": false,
             "offset": 0,
             "splitNumber": 5,
@@ -270,9 +211,7 @@
             "splitLine": {
                 "show": true,
                 "lineStyle": {
-                    "show": false,
-                    "opacity": 0.35,
-                    "color": "#2a3344"
+                    "show": false
                 }
             },
             "animation": true,
@@ -291,24 +230,11 @@
             "text": "\u884c\u4e1a\u70ed\u529b\u5206\u5e03",
             "target": "blank",
             "subtarget": "blank",
-            "left": "center",
             "padding": 5,
             "itemGap": 10,
             "textAlign": "auto",
             "textVerticalAlign": "auto",
-            "triggerEvent": false,
-            "textStyle": {
-                "color": "#e8b84a",
-                "fontFamily": "Microsoft YaHei",
-                "fontSize": 18,
-                "richInheritPlainLabel": true
-            },
-            "subtextStyle": {
-                "color": "#9aa4b8",
-                "fontFamily": "Microsoft YaHei",
-                "fontSize": 12,
-                "richInheritPlainLabel": true
-            }
+            "triggerEvent": false
         }
     ],
     "visualMap": {
@@ -316,16 +242,11 @@
         "type": "continuous",
         "min": 0,
         "max": 125,
-        "textStyle": {
-            "color": "#9aa4b8",
-            "richInheritPlainLabel": true
-        },
         "inRange": {
             "color": [
-                "#181e2a",
-                "#1e3a5f",
-                "#2563eb",
-                "#e8b84a"
+                "#50a3ba",
+                "#eac763",
+                "#d94e5d"
             ]
         },
         "calculable": true,
@@ -339,13 +260,12 @@
         "showLabel": true,
         "itemWidth": 20,
         "itemHeight": 140,
-        "borderColor": "#2a3344",
         "borderWidth": 0
     }
 };
-        chart_6c6d0ff6cd5848cbab85a550b0cbf68c.setOption(option_6c6d0ff6cd5848cbab85a550b0cbf68c);
+        chart_a49c9cb973244967936821e8b957a136.setOption(option_a49c9cb973244967936821e8b957a136);
             window.addEventListener('resize', function(){
-                chart_6c6d0ff6cd5848cbab85a550b0cbf68c.resize();
+                chart_a49c9cb973244967936821e8b957a136.resize();
             })
     </script>
 </body>
