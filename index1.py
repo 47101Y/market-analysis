@@ -1,12 +1,128 @@
+import re
+
 import pandas as pd
-from pyecharts.charts import Bar, Pie, Timeline, Page
+from pyecharts.charts import Bar, Timeline
 from pyecharts import options as opts
-from pyecharts.globals import ThemeType
 from collections import defaultdict
 from pyecharts.globals import CurrentConfig
 import json
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
+
+# 与 dashboard.css 一致的全站图表主题
+CHART_BG = "#0b0e14"
+CHART_COLORS = {
+    "新增": "#2563eb",
+    "弱转强": "#26a69a",
+    "强者恒强": "#ef5350",
+    "行业": "#3b82f6",
+    "数量": "#2563eb",
+}
+HEATMAP_RANGE = ["#181e2a", "#1e3a5f", "#2563eb", "#e8b84a"]
+
+
+def chart_init_opts(height="720px"):
+    return opts.InitOpts(
+        width="100%",
+        height=height,
+        bg_color=CHART_BG,
+    )
+
+
+def chart_title_opts(title, subtitle=None):
+    return opts.TitleOpts(
+        title=title,
+        subtitle=subtitle or "",
+        pos_left="center",
+        title_textstyle_opts=opts.TextStyleOpts(
+            color="#e8b84a", font_size=18, font_family="Microsoft YaHei"
+        ),
+        subtitle_textstyle_opts=opts.TextStyleOpts(
+            color="#9aa4b8", font_size=12, font_family="Microsoft YaHei"
+        ),
+    )
+
+
+def chart_legend_opts(pos_top="8%"):
+    return opts.LegendOpts(
+        pos_top=pos_top,
+        textstyle_opts=opts.TextStyleOpts(color="#9aa4b8", font_size=12),
+    )
+
+
+def chart_axis_opts(rotate=45):
+    return opts.AxisOpts(
+        axislabel_opts=opts.LabelOpts(
+            color="#9aa4b8", rotate=rotate, font_size=11, font_family="Microsoft YaHei"
+        ),
+        axisline_opts=opts.AxisLineOpts(
+            linestyle_opts=opts.LineStyleOpts(color="#2a3344")
+        ),
+        splitline_opts=opts.SplitLineOpts(
+            is_show=True,
+            linestyle_opts=opts.LineStyleOpts(color="#2a3344", opacity=0.35),
+        ),
+    )
+
+
+def chart_tooltip_opts():
+    return opts.TooltipOpts(
+        trigger="axis",
+        background_color="rgba(24, 30, 42, 0.96)",
+        border_color="#2a3344",
+        textstyle_opts=opts.TextStyleOpts(color="#e8ecf4", font_size=12),
+    )
+
+
+def chart_datazoom_opts():
+    return [opts.DataZoomOpts()]
+
+
+def chart_visualmap_opts(max_value):
+    return opts.VisualMapOpts(
+        max_=int(max_value),
+        pos_right="5%",
+        pos_top="middle",
+        range_color=HEATMAP_RANGE,
+        textstyle_opts=opts.TextStyleOpts(color="#9aa4b8"),
+        border_color="#2a3344",
+    )
+
+
+def inject_chart_page_style(html_path, page_title):
+    """为 pyecharts 生成的 HTML 注入与 dashboard 一致的外观。"""
+    with open(html_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    if "dashboard.css" in html:
+        return
+
+    inject_head = f"""<link rel="stylesheet" href="dashboard.css">
+    <title>{page_title}</title>
+    <style>
+      html, body.chart-page {{
+        margin: 0;
+        padding: 0;
+        background: {CHART_BG} !important;
+        font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+      }}
+      .chart-container {{
+        background: {CHART_BG} !important;
+      }}
+    </style>"""
+
+    html = html.replace("<head>", f"<head>\n{inject_head}", 1)
+    html = html.replace("<body >", '<body class="chart-page">', 1)
+    html = html.replace("<body>", '<body class="chart-page">', 1)
+    # 不用 echarts 内置主题，避免覆盖自定义配色
+    html = re.sub(
+        r",\s*'(dark|white|light)',\s*\{renderer",
+        ", null, {renderer",
+        html,
+    )
+
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(html)
 
 
 # =========================
@@ -145,6 +261,29 @@ for _, row in new_df.iterrows():
 # =========================
 
 LOOKBACK_DAYS = 10
+MAX_DISPLAY_DAY = 10
+
+
+def _price_valid(val):
+    if val is None:
+        return False
+    try:
+        return not pd.isna(val)
+    except TypeError:
+        return True
+
+
+def trim_future_rows(future_list, max_day):
+    """只保留有数据的天数，遇到空行即停止（不显示后续空行）。"""
+    rows = []
+    for r in future_list:
+        if r['day'] > max_day:
+            break
+        if not _price_valid(r.get('open')) or not _price_valid(r.get('close')):
+            break
+        rows.append(r)
+    return rows
+
 
 latest_trade_date = future_df['trade_date'].max()
 selection_dates = sorted(new_df['date'].unique())
@@ -186,6 +325,7 @@ for add_date in last_n_selection_dates:
         if cum_pct <= 0:
             continue
 
+        future_list = future_dict.get(add_date, {}).get(stock, [])
         positive_cum_rows.append({
             'add_date': add_date,
             'stock': stock,
@@ -195,89 +335,98 @@ for add_date in last_n_selection_dates:
             'latest_close': round(latest_close, 4),
             'cum_pct': cum_pct,
             'hold_days': day_seq,
+            'future_days': trim_future_rows(future_list, MAX_DISPLAY_DAY),
         })
 
 positive_cum_rows.sort(key=lambda x: (x['add_date'], -x['cum_pct']))
 
 
-def render_positive_cum_html(rows, latest_date, lookback_dates):
+def render_stock_card(name, stock, future_days, summary_pct=None):
+    body_rows = []
+    for row in future_days:
+        cum_pct = row['cum_pct']
+        pct_cls = 'pct-up' if cum_pct > 0 else 'pct-down'
+        pct_str = f"{cum_pct * 100:.2f}%"
+        body_rows.append(f"""
+            <tr>
+                <td>{row['day']}</td>
+                <td>{row['open']}</td>
+                <td>{row['close']}</td>
+                <td class="{pct_cls}">{pct_str}</td>
+            </tr>""")
+
+    summary_html = ''
+    if summary_pct is not None:
+        cls = 'stock-card__summary--up' if summary_pct > 0 else 'stock-card__summary--down'
+        summary_html = (
+            f'<p class="stock-card__summary {cls}">'
+            f'截至最新日自T+1累计：{summary_pct * 100:.2f}%</p>'
+        )
+
+    return f"""
+    <div class="stock-card-wrap">
+        <div class="stock-card">
+            <h3 class="stock-card__title">{name}（{stock}）</h3>
+            {summary_html}
+            <table class="stock-table">
+                <thead><tr>
+                    <th>第N日</th><th>开盘价</th><th>收盘价</th><th>自T+1日涨跌幅</th>
+                </tr></thead>
+                <tbody>{''.join(body_rows)}</tbody>
+            </table>
+        </div>
+    </div>"""
+
+
+def render_positive_cum_html(rows, latest_date, lookback_dates, thresholds):
     date_summary = ', '.join(lookback_dates)
-    table_rows_html = []
+    grouped = defaultdict(list)
     for r in rows:
-        pct_str = f"{r['cum_pct'] * 100:.2f}%"
-        table_rows_html.append(f"""
-        <tr>
-            <td>{r['add_date']}</td>
-            <td>{r['stock']}</td>
-            <td>{r['name']}</td>
-            <td>{r['industry']}</td>
-            <td>{r['t1_open']}</td>
-            <td>{r['latest_close']}</td>
-            <td>T+{r['hold_days']}</td>
-            <td style="color:#ff4d4f;font-weight:bold;">{pct_str}</td>
-        </tr>""")
+        grouped[r['add_date']].append(r)
+
+    date_sections = []
+    for add_date in lookback_dates:
+        stocks = grouped.get(add_date, [])
+        if not stocks:
+            continue
+
+        threshold = thresholds.get(add_date, 0)
+        cards_html = ''.join(
+            render_stock_card(s['name'], s['stock'], s['future_days'], s['cum_pct'])
+            for s in stocks
+        )
+        date_sections.append(f"""
+        <section class="date-block">
+            <div class="section-date-header">
+                <h3>{add_date} 第50名成交额：{threshold} 亿元</h3>
+                <p>本日累计为正 {len(stocks)} 只（统计至 {latest_date}）</p>
+            </div>
+            <div class="card-row">{cards_html}</div>
+        </section>""")
 
     empty_hint = (
-        '<tr><td colspan="8" style="padding:24px;color:#999;">暂无符合条件的股票</td></tr>'
-        if not table_rows_html else ''
+        '<p class="empty-hint">暂无符合条件的股票</p>'
+        if not date_sections else ''
     )
 
     html = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>最新日期累计增幅为正</title>
-    <style>
-        body {{
-            margin: 0;
-            padding: 20px;
-            background: #111;
-            color: #fff;
-            font-family: Arial, sans-serif;
-        }}
-        h2 {{ margin: 0 0 8px; color: #ffd666; }}
-        .meta {{ color: #8b9cb3; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }}
-        .wrap {{ overflow-x: auto; }}
-        table {{
-            width: 100%;
-            min-width: 960px;
-            border-collapse: collapse;
-            font-size: 13px;
-            text-align: center;
-        }}
-        th, td {{
-            padding: 10px 8px;
-            border: 1px solid #444;
-        }}
-        th {{ background: #333; }}
-        tr:nth-child(even) {{ background: #1a1a1a; }}
-    </style>
+    <link rel="stylesheet" href="dashboard.css">
 </head>
 <body>
-    <h2>最新日期累计增幅为正</h2>
-    <div class="meta">
-        统计截至：<b>{latest_date}</b> &nbsp;|&nbsp;
+    <div class="section-intro" style="margin:24px 24px 0;">
+        <h2>最新日期累计增幅为正</h2>
+        统计截至：<b>{latest_date}</b><br>
         入选日范围（最近 {len(lookback_dates)} 个交易日）：{date_summary}<br>
-        规则：上述每个入选日的新增 TOP50 个股，若从 <b>T+1 开盘价</b> 持有至 <b>{latest_date}</b> 收盘价，累计涨幅 &gt; 0，则列入本表。
+        规则：从 <b>T+1 开盘价</b> 持有至 <b>{latest_date}</b> 收盘价累计涨幅 &gt; 0。<br>
+        下列每只股票展示 <b>T 日至 T+10 日</b> 走势（最多 11 行，无数据的天数自动隐藏）。
     </div>
-    <div class="wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>入选日期</th>
-                    <th>股票代码</th>
-                    <th>名称</th>
-                    <th>行业</th>
-                    <th>T+1开盘价</th>
-                    <th>最新收盘价</th>
-                    <th>持有至最新日</th>
-                    <th>自T+1累计涨幅</th>
-                </tr>
-            </thead>
-            <tbody>
-                {''.join(table_rows_html) if table_rows_html else empty_hint}
-            </tbody>
-        </table>
+    <div id="futureChartArea" style="display:flex;">
+    {''.join(date_sections) if date_sections else '<p class="empty-hint">暂无符合条件的股票</p>'}
     </div>
 </body>
 </html>"""
@@ -289,7 +438,57 @@ with open('positive_cum.html', 'w', encoding='utf-8') as f:
         positive_cum_rows,
         latest_trade_date,
         last_n_selection_dates,
+        threshold_dict,
     ))
+
+
+def build_positive_cum_payload(rows, latest_date, lookback_dates, thresholds):
+    grouped = defaultdict(list)
+    for r in rows:
+        grouped[r['add_date']].append({
+            'name': r['name'],
+            'stock': r['stock'],
+            'cum_pct': float(r['cum_pct']),
+            'future': [
+                {
+                    'day': int(fd['day']),
+                    'open': float(fd['open']),
+                    'close': float(fd['close']),
+                    'cum_pct': float(fd['cum_pct']),
+                }
+                for fd in r['future_days']
+            ],
+        })
+
+    sections = []
+    for add_date in lookback_dates:
+        stocks = grouped.get(add_date, [])
+        if not stocks:
+            continue
+        sections.append({
+            'date': add_date,
+            'threshold': float(thresholds.get(add_date, 0) or 0),
+            'stocks': stocks,
+        })
+
+    return {
+        'latest_date': latest_date,
+        'lookback_dates': lookback_dates,
+        'sections': sections,
+    }
+
+
+positive_cum_payload = build_positive_cum_payload(
+    positive_cum_rows,
+    latest_trade_date,
+    last_n_selection_dates,
+    threshold_dict,
+)
+
+with open('positive_cum_data.js', 'w', encoding='utf-8') as f:
+    f.write('window.positiveCumData = ')
+    json.dump(positive_cum_payload, f, ensure_ascii=False)
+    f.write(';\n')
 
 
 # =========================
@@ -310,25 +509,34 @@ result = result.merge(strong_count, on='date', how='left')
 result = result.fillna(0)
 
 bar = (
-    Bar(init_opts=opts.InitOpts(
-        width="100%",
-        height="760px",
-        theme=ThemeType.DARK
-    ))
+    Bar(init_opts=chart_init_opts())
     .add_xaxis(result['date'].tolist())
-    .add_yaxis('新增', result['新增'].tolist())
-    .add_yaxis('弱转强', result['弱转强'].tolist())
-    .add_yaxis('强者恒强', result['强者恒强'].tolist())
+    .add_yaxis(
+        '新增',
+        result['新增'].tolist(),
+        itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['新增']),
+    )
+    .add_yaxis(
+        '弱转强',
+        result['弱转强'].tolist(),
+        itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['弱转强']),
+    )
+    .add_yaxis(
+        '强者恒强',
+        result['强者恒强'].tolist(),
+        itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['强者恒强']),
+    )
     .set_global_opts(
-        title_opts=opts.TitleOpts(
-            title='每日成交额TOP50统计',
-            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n' 
-            '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
+        title_opts=chart_title_opts(
+            '每日成交额TOP50统计',
+            '本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n'
+            '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票',
         ),
-        tooltip_opts=opts.TooltipOpts(trigger='axis'),
-        xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
-        datazoom_opts=[opts.DataZoomOpts()],
-        legend_opts=opts.LegendOpts(pos_top='10%')
+        tooltip_opts=chart_tooltip_opts(),
+        xaxis_opts=chart_axis_opts(rotate=45),
+        yaxis_opts=chart_axis_opts(rotate=0),
+        datazoom_opts=chart_datazoom_opts(),
+        legend_opts=chart_legend_opts(pos_top='10%'),
     )
 )
 
@@ -359,19 +567,12 @@ chart_""" + bar.chart_id + """.on('click', function(params) {
     var area = parent.document.getElementById('futureChartArea');
     area.innerHTML = "";
 
-    // ======================
-    // 显示第50名成交额
-    // ======================
     var threshold = thresholdData[date] || 0;
-    var infoDiv = parent.document.createElement('div');
-    infoDiv.style.width = '100%';
-    infoDiv.style.padding = '15px';
-    infoDiv.style.color = '#fff';
-    infoDiv.style.background = '#1f1f1f';
-    infoDiv.style.borderRadius = '10px';
-    infoDiv.style.marginBottom = '20px';
-    infoDiv.innerHTML = '<h3>' + date + ' 第50名成交额：' + threshold + ' 亿元</h3>';
-    area.appendChild(infoDiv);
+    area.insertAdjacentHTML('beforeend', parent.buildDateHeaderHtml(date, threshold, ''));
+
+    var cardRow = parent.document.createElement('div');
+    cardRow.className = 'card-row';
+    area.appendChild(cardRow);
 
     stocks.forEach(function(item) {
 
@@ -381,36 +582,11 @@ chart_""" + bar.chart_id + """.on('click', function(params) {
             return;
         }
 
-        var div = parent.document.createElement('div');
-        div.style.marginBottom = '30px';
-        area.appendChild(div);
-
-        var html = '';
-        html += '<div style="background:#1f1f1f; padding:15px; border-radius:10px; color:white;">';
-        html += '<h3 style="text-align:center; margin-bottom:15px; color:#ffd666;">';
-        html += item.name + '（' + item.stock + '）';
-        html += '</h3>';
-        html += '<table style="width:100%; border-collapse:collapse; text-align:center; font-size:13px;">';
-        html += '<tr style="background:#333;">';
-        html += '<th style="padding:8px; border:1px solid #555;">第N日</th>';
-        html += '<th style="padding:8px; border:1px solid #555;">开盘价</th>';
-        html += '<th style="padding:8px; border:1px solid #555;">收盘价</th>';
-        html += '<th style="padding:8px; border:1px solid #555;">自T+1日涨跌幅</th>';
-        html += '</tr>';
-
-        future.forEach(function(row) {
-            html += '<tr>';
-            html += '<td style="padding:6px; border:1px solid #444;">' + row.day + '</td>';
-            html += '<td style="padding:6px; border:1px solid #444;">' + row.open + '</td>';
-            html += '<td style="padding:6px; border:1px solid #444;">' + row.close + '</td>';
-            var color = row.cum_pct > 0 ? '#ff4d4f' : '#52c41a';
-            var pct = (row.cum_pct * 100).toFixed(2) + '%';
-            html += '<td style="padding:6px; border:1px solid #444; color:' + color + '; font-weight:bold;">' + pct + '</td>';
-            html += '</tr>';
-        });
-
-        html += '</table></div>';
-        div.innerHTML = html;
+        var trimmed = parent.trimFutureRows(future, parent.MAX_DISPLAY_DAY || 10);
+        var wrap = parent.document.createElement('div');
+        wrap.className = 'stock-card-wrap';
+        wrap.innerHTML = parent.buildStockCardHtml(item.name, item.stock, trimmed);
+        cardRow.appendChild(wrap);
 
     });
 
@@ -426,19 +602,21 @@ industry_count = new_df['industry'].value_counts().reset_index()
 industry_count.columns = ['industry', 'count']
 
 heat_bar = (
-    Bar(init_opts=opts.InitOpts(
-        width="100%",
-        height="760px",
-        theme=ThemeType.DARK
-    ))
+    Bar(init_opts=chart_init_opts())
     .add_xaxis(industry_count['industry'].tolist())
-    .add_yaxis('行业出现次数', industry_count['count'].tolist(), category_gap='40%')
+    .add_yaxis(
+        '行业出现次数',
+        industry_count['count'].tolist(),
+        category_gap='40%',
+        itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['行业']),
+    )
     .set_global_opts(
-        title_opts=opts.TitleOpts(title='行业热力分布'),
-        xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
-        visualmap_opts=opts.VisualMapOpts(max_=int(industry_count['count'].max()),
-                                        pos_right="5%", 
-                                        pos_top="middle")
+        title_opts=chart_title_opts('行业热力分布'),
+        tooltip_opts=chart_tooltip_opts(),
+        xaxis_opts=chart_axis_opts(rotate=45),
+        yaxis_opts=chart_axis_opts(rotate=0),
+        visualmap_opts=chart_visualmap_opts(industry_count['count'].max()),
+        legend_opts=chart_legend_opts(),
     )
 )
 
@@ -448,9 +626,7 @@ heat_bar = (
 # =========================
 
 rotation_group = new_df.groupby(['date', 'industry']).size().reset_index(name='count')
-timeline = Timeline(init_opts=opts.InitOpts(        width="100%",
-                                                    height="760px",
-                                                    theme=ThemeType.DARK))
+timeline = Timeline(init_opts=chart_init_opts())
 
 
 for d in sorted(rotation_group['date'].unique()):
@@ -458,19 +634,28 @@ for d in sorted(rotation_group['date'].unique()):
     bar_day = (
         Bar()
         .add_xaxis(temp['industry'].tolist())
-        .add_yaxis('数量', temp['count'].tolist())
+        .add_yaxis(
+            '数量',
+            temp['count'].tolist(),
+            itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['数量']),
+        )
         .set_global_opts(
-            title_opts=opts.TitleOpts(title=f'{d} 行业轮动'),
-            xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
-            visualmap_opts=opts.VisualMapOpts(max_=int(temp['count'].max()),
-                                            pos_right="5%",   # 离右边 5%，往左挪，靠近主图
-                                            pos_top="middle"  # 垂直居中，和主图对齐
-                                              )
+            title_opts=chart_title_opts(f'{d} 行业轮动'),
+            tooltip_opts=chart_tooltip_opts(),
+            xaxis_opts=chart_axis_opts(rotate=45),
+            yaxis_opts=chart_axis_opts(rotate=0),
+            visualmap_opts=chart_visualmap_opts(temp['count'].max()),
+            legend_opts=chart_legend_opts(),
         )
     )
     timeline.add(bar_day, time_point=d)
 
-timeline.add_schema(play_interval=1400, is_auto_play=True, is_loop_play=False)
+timeline.add_schema(
+    play_interval=1400,
+    is_auto_play=True,
+    is_loop_play=False,
+    label_opts=opts.LabelOpts(color="#9aa4b8", font_size=12),
+)
 
 
 # =========================
@@ -481,6 +666,12 @@ bar.render("bar.html")
 heat_bar.render("heat.html")
 timeline.render("timeline_v2.html")
 
+inject_chart_page_style("bar.html", "每日成交额TOP50新增个股统计")
+inject_chart_page_style("heat.html", "新增股票行业热力分析")
+inject_chart_page_style("timeline_v2.html", "新增股票行业轮动")
+
 print("Dashboard 生成完成！")
-print(f"最新交易日: {latest_trade_date}，累计为正: {len(positive_cum_rows)} 只，页面: positive_cum.html")
+print(f"最新交易日: {latest_trade_date}，累计为正: {len(positive_cum_rows)} 只")
+print("  -> positive_cum_data.js（index.html 第五标签用）")
+print("  -> positive_cum.html（可单独打开）")
             
