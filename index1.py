@@ -417,18 +417,25 @@ bar = (
         title_opts=opts.TitleOpts(
             title='每日成交额TOP50统计',
             subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n然后分为两类:T日增跌幅<0,T+1日>0(弱转强) 以及T日增跌幅>0,T+1日>0的股票(强者恒强)',
-
+            pos_left='center',
+            pos_top='1%',
+            item_gap=6,
             subtitle_textstyle_opts=opts.TextStyleOpts(
-                font_size=12,       # 字体变大（默认12，你可以改14/15/16）
-                line_height=22,     # 行间距变大 → 文字更宽松
-                color="#cccccc",    # 颜色（深色主题用浅灰更舒服）
-                font_weight="normal"
-            )
+                font_size=11,
+                line_height=16,
+                color="#aaaaaa",
+                font_weight="normal",
+            ),
         ),
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
         xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
+        yaxis_opts=opts.AxisOpts(name='数量（只）'),
         datazoom_opts=[opts.DataZoomOpts()],
-        legend_opts=opts.LegendOpts(pos_top='10%')
+        legend_opts=opts.LegendOpts(
+            pos_top='13%',
+            pos_left='center',
+            item_gap=16,
+        ),
     )
 )
 
@@ -438,6 +445,17 @@ bar = (
 bar.add_js_funcs("""
 
 window.myChart = chart_""" + bar.chart_id + """;
+
+// 固定绘图区，避免副标题/图例挤压柱状图
+chart_""" + bar.chart_id + """.setOption({
+    grid: {
+        top: '20%',
+        left: '3%',
+        right: '10%',
+        bottom: '14%',
+        containLabel: true
+    }
+});
 
 var futureData = """ + json.dumps(future_dict, ensure_ascii=False) + """;
 var newData = """ + json.dumps(dict(new_detail), ensure_ascii=False) + """;
