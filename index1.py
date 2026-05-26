@@ -172,95 +172,116 @@ def trim_future_rows(future_list, max_day):
 
 latest_trade_date = future_df['trade_date'].max()
 selection_dates = sorted(new_df['date'].unique())
-last_n_selection_dates = selection_dates[-LOOKBACK_DAYS:]
-
+min_selection_date = selection_dates[0]
 wide_index = df.set_index(['add_date', 'stock'])
-positive_cum_rows = []
 
-for add_date in last_n_selection_dates:
-    day_stocks = new_df[new_df['date'] == add_date]
-    for _, stock_row in day_stocks.iterrows():
-        stock = stock_row['stock']
-        key = (add_date, stock)
-        if key not in wide_index.index:
-            continue
+# (add_date, stock) -> { trade_date: row }
+future_by_stock = defaultdict(dict)
+for _, row in future_df.iterrows():
+    future_by_stock[(row['add_date'], row['stock'])][row['trade_date']] = row
 
-        wide_row = wide_index.loc[key]
-        if isinstance(wide_row, pd.DataFrame):
-            wide_row = wide_row.iloc[0]
-
-        t1_open = wide_row['open1']
-        if pd.isna(t1_open) or t1_open == 0:
-            continue
-
-        latest_slice = future_df[
-            (future_df['add_date'] == add_date)
-            & (future_df['stock'] == stock)
-            & (future_df['trade_date'] == latest_trade_date)
-        ]
-        if latest_slice.empty:
-            continue
-
-        day_seq = int(latest_slice.iloc[0]['day_seq'])
-        if day_seq < 1:
-            continue
-
-        latest_close = float(latest_slice.iloc[0]['close'])
-        cum_pct = (latest_close - t1_open) / t1_open
-        if cum_pct <= 0:
-            continue
-
-        positive_cum_rows.append({
-            'add_date': add_date,
-            'stock': stock,
-            'name': stock_row['name'],
-            'industry': stock_row['industry'],
-            't1_open': round(float(t1_open), 4),
-            'latest_close': round(latest_close, 4),
-            'cum_pct': cum_pct,
-            'hold_days': day_seq,
-            'future_days': trim_future_rows(
-                future_dict.get(add_date, {}).get(stock, []),
-                MAX_DISPLAY_DAY,
-            ),
-        })
-
-positive_cum_rows.sort(key=lambda x: (x['add_date'], -x['cum_pct']))
+# 可切换的截止交易日：从最早有入选数据日到最新交易日
+all_cutoff_dates = sorted(
+    d for d in future_df['trade_date'].unique() if min_selection_date <= d <= latest_trade_date
+)
 
 
-def build_positive_cum_payload(rows, latest_date, lookback_dates, thresholds):
-    grouped = defaultdict(list)
-    for r in rows:
-        grouped[r['add_date']].append({
-            'name': r['name'],
-            'stock': r['stock'],
-            'cum_pct': float(r['cum_pct']),
-            'future': [
-                {
-                    'day': int(fd['day']),
-                    'open': float(fd['open']),
-                    'close': float(fd['close']),
-                    'cum_pct': float(fd['cum_pct']),
-                }
-                for fd in r['future_days']
-            ],
-        })
-
+def compute_positive_snapshot(as_of_date):
+    """截至 as_of_date 收盘，过去 LOOKBACK_DAYS 个入选日中累计为正的股票。"""
+    lookback_dates = [d for d in selection_dates if d <= as_of_date][-LOOKBACK_DAYS:]
     sections = []
+
     for add_date in lookback_dates:
-        stocks = grouped.get(add_date, [])
-        if not stocks:
-            continue
-        sections.append({
-            'date': add_date,
-            'threshold': float(thresholds.get(add_date, 0) or 0),
-            'stocks': stocks,
-        })
+        stocks = []
+        for _, stock_row in new_df[new_df['date'] == add_date].iterrows():
+            stock = stock_row['stock']
+            key = (add_date, stock)
+            if key not in wide_index.index:
+                continue
+
+            wide_row = wide_index.loc[key]
+            if isinstance(wide_row, pd.DataFrame):
+                wide_row = wide_row.iloc[0]
+
+            t1_open = wide_row['open1']
+            if pd.isna(t1_open) or t1_open == 0:
+                continue
+
+            asof_row = future_by_stock.get((add_date, stock), {}).get(as_of_date)
+            if asof_row is None:
+                continue
+
+            day_seq = int(asof_row['day_seq'])
+            if day_seq < 1:
+                continue
+
+            close = float(asof_row['close'])
+            cum_pct = (close - t1_open) / t1_open
+            if cum_pct <= 0:
+                continue
+
+            future_list = future_dict.get(add_date, {}).get(stock, [])
+            display_max = min(day_seq, MAX_DISPLAY_DAY)
+            stocks.append({
+                'name': stock_row['name'],
+                'stock': stock,
+                'cum_pct': float(cum_pct),
+                'future': [
+                    {
+                        'day': int(fd['day']),
+                        'open': float(fd['open']),
+                        'close': float(fd['close']),
+                        'cum_pct': float(fd['cum_pct']),
+                    }
+                    for fd in trim_future_rows(future_list, display_max)
+                ],
+            })
+
+        if stocks:
+            stocks.sort(key=lambda x: -x['cum_pct'])
+            sections.append({
+                'date': add_date,
+                'threshold': float(threshold_dict.get(add_date, 0) or 0),
+                'stocks': stocks,
+            })
 
     return {
-        'latest_date': latest_date,
+        'as_of_date': as_of_date,
         'lookback_dates': lookback_dates,
         'sections': sections,
+        'total': sum(len(s['stocks']) for s in sections),
+    }
+
+
+print('正在生成各截止日快照…')
+positive_snapshots = {}
+for cutoff in all_cutoff_dates:
+    positive_snapshots[cutoff] = compute_positive_snapshot(cutoff)
+
+# 兼容旧逻辑：最新日快照
+latest_snapshot = positive_snapshots[latest_trade_date]
+positive_cum_rows = []
+for section in latest_snapshot['sections']:
+    for s in section['stocks']:
+        positive_cum_rows.append({
+            'add_date': section['date'],
+            'stock': s['stock'],
+            'name': s['name'],
+            'cum_pct': s['cum_pct'],
+            'future_days': s['future'],
+        })
+
+
+def build_positive_cum_payload(snapshots, cutoff_dates, latest_date):
+    return {
+        'latest_date': latest_date,
+        'lookback_days': LOOKBACK_DAYS,
+        'cutoff_dates': cutoff_dates,
+        'default_cutoff': latest_date,
+        'snapshots': snapshots,
+        # 兼容旧版前端字段
+        'lookback_dates': snapshots[latest_date]['lookback_dates'],
+        'sections': snapshots[latest_date]['sections'],
     }
 
 
@@ -366,10 +387,9 @@ def render_positive_cum_html(rows, latest_date, lookback_dates, thresholds):
 
 
 positive_cum_payload = build_positive_cum_payload(
-    positive_cum_rows,
+    positive_snapshots,
+    all_cutoff_dates,
     latest_trade_date,
-    last_n_selection_dates,
-    threshold_dict,
 )
 
 with open('positive_cum_data.js', 'w', encoding='utf-8') as f:
@@ -381,7 +401,7 @@ with open('positive_cum.html', 'w', encoding='utf-8') as f:
     f.write(render_positive_cum_html(
         positive_cum_rows,
         latest_trade_date,
-        last_n_selection_dates,
+        latest_snapshot['lookback_dates'],
         threshold_dict,
     ))
 
@@ -567,12 +587,13 @@ heat_bar.render("heat.html")
 timeline.render("timeline_v2.html")
 
 print("Dashboard 生成完成！")
-print(f"最新交易日: {latest_trade_date}，累计为正: {len(positive_cum_rows)} 只")
-print(f"  -> 入选日共 {LOOKBACK_DAYS} 天: {last_n_selection_dates[0]} ~ {last_n_selection_dates[-1]}")
+print(f"最新交易日: {latest_trade_date}，累计为正: {latest_snapshot['total']} 只")
+print(f"  -> 日期存档: {all_cutoff_dates[0]} ~ {all_cutoff_dates[-1]} 共 {len(all_cutoff_dates)} 个交易日")
+print(f"  -> 入选日窗口: 最近 {LOOKBACK_DAYS} 天")
 print("  -> positive_cum_data.js / positive_cum.html 已更新")
 
-# 更新 index.html 中 JS 缓存参数，避免浏览器仍加载旧的 10 日数据
-cache_ver = f"{latest_trade_date}-d{LOOKBACK_DAYS}"
+# 更新 index.html 中 JS 缓存参数
+cache_ver = f"{latest_trade_date}-d{LOOKBACK_DAYS}-snap{len(all_cutoff_dates)}"
 with open("index.html", "r", encoding="utf-8") as f:
     index_html = f.read()
 new_src = f"positive_cum_data.js?v={cache_ver}"

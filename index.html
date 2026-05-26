@@ -148,6 +148,84 @@
     .pct-up{ color:#ff4d4f; font-weight:bold; }
     .pct-down{ color:#52c41a; font-weight:bold; }
 
+    .cutoff-panel{
+        width:100%;
+        padding:14px 18px;
+        background:#1a1a1a;
+        border-radius:10px;
+        margin-bottom:12px;
+        box-sizing:border-box;
+    }
+
+    .cutoff-panel__title{
+        color:#ffd666;
+        font-size:15px;
+        font-weight:600;
+        margin:0 0 10px;
+    }
+
+    .cutoff-panel__current{
+        color:#fff;
+        font-size:14px;
+        margin:0 0 10px;
+    }
+
+    .cutoff-panel__current b{ color:#ffd666; }
+
+    .cutoff-slider{
+        width:100%;
+        margin:8px 0 12px;
+        cursor:pointer;
+    }
+
+    .cutoff-nav{
+        display:flex;
+        gap:8px;
+        margin-bottom:12px;
+    }
+
+    .cutoff-nav button{
+        background:#333;
+        color:#fff;
+        border:none;
+        padding:6px 14px;
+        border-radius:6px;
+        cursor:pointer;
+        font-size:13px;
+    }
+
+    .cutoff-nav button:hover{ background:#555; }
+
+    .cutoff-dates{
+        display:flex;
+        flex-wrap:wrap;
+        gap:6px;
+        max-height:100px;
+        overflow-y:auto;
+        padding:4px 0;
+    }
+
+    .cutoff-btn{
+        background:#2a2a2a;
+        color:#ccc;
+        border:1px solid #444;
+        padding:5px 10px;
+        border-radius:6px;
+        cursor:pointer;
+        font-size:12px;
+    }
+
+    .cutoff-btn:hover{ background:#3a3a3a; color:#fff; }
+
+    .cutoff-btn.active{
+        background:#2563eb;
+        border-color:#2563eb;
+        color:#fff;
+        font-weight:600;
+    }
+
+    #positiveCumContent{ width:100%; }
+
     .futureChartBox{
         width:520px;
         height:420px;
@@ -196,7 +274,7 @@
     ">
 </div>
 
-<script src="positive_cum_data.js?v=2026-05-26-d11"></script>
+<script src="positive_cum_data.js?v=2026-05-26-d11-snap42"></script>
 <script>
 var MAX_DISPLAY_DAY = 10;
 
@@ -213,12 +291,13 @@ function trimFutureRows(futureList, maxDay) {
     return rows;
 }
 
-function buildStockCardHtml(name, stock, futureRows, summaryPct) {
+function buildStockCardHtml(name, stock, futureRows, summaryPct, asOfDate) {
     var html = '<div class="stock-card">';
     html += '<h3 class="stock-title">' + name + '（' + stock + '）</h3>';
     if (summaryPct !== undefined && summaryPct !== null) {
         var scls = summaryPct > 0 ? 'summary-up' : 'summary-down';
-        html += '<p class="stock-summary ' + scls + '">截至最新日自T+1累计：' + (summaryPct * 100).toFixed(2) + '%</p>';
+        var label = asOfDate ? ('截至 ' + asOfDate + ' 自T+1累计：') : '截至当日自T+1累计：';
+        html += '<p class="stock-summary ' + scls + '">' + label + (summaryPct * 100).toFixed(2) + '%</p>';
     }
     html += '<table class="stock-table"><thead><tr>';
     html += '<th>第N日</th><th>开盘价</th><th>收盘价</th><th>自T+1日涨跌幅</th>';
@@ -239,40 +318,22 @@ function buildDateHeaderHtml(date, threshold, extra) {
     return html;
 }
 
-function showPositiveCum() {
-    document.getElementById('imageBox').style.display = 'none';
-    document.getElementById('mainContainer').style.display = 'none';
+function renderPositiveSnapshot(snapshot, asOfDate) {
+    var content = document.getElementById('positiveCumContent');
+    if (!content) return;
+    content.innerHTML = '';
 
-    var area = document.getElementById('futureChartArea');
-    area.innerHTML = '';
-    area.style.display = 'flex';
-
-    var data = window.positiveCumData;
-    if (!data || !data.sections) {
-        area.innerHTML = '<p style="color:#999;width:100%;text-align:center;padding:40px;">请先运行 python index1.py 生成 positive_cum_data.js</p>';
+    if (!snapshot || !snapshot.sections || snapshot.sections.length === 0) {
+        content.innerHTML = '<p style="color:#999;width:100%;text-align:center;padding:30px;">'
+            + asOfDate + ' 暂无累计为正的股票（或该日尚无足够 T+1 数据）</p>';
         return;
     }
 
-    var intro = document.createElement('div');
-    intro.className = 'section-intro';
-    intro.innerHTML =
-        '<h2>最新日期累计增幅为正</h2>' +
-        '统计截至：<b style="color:#fff;">' + data.latest_date + '</b><br>' +
-        '入选日范围（最近 ' + data.lookback_dates.length + ' 个交易日）：' + data.lookback_dates.join('、') + '<br>' +
-        '规则：从 <b style="color:#fff;">T+1 开盘价</b> 持有至 <b style="color:#fff;">' + data.latest_date + '</b> 收盘价累计涨幅 &gt; 0。<br>' +
-        '每只股票展示 <b style="color:#fff;">T 日至 T+10 日</b> 逐日走势（无数据的天数自动隐藏）。';
-    area.appendChild(intro);
-
-    if (data.sections.length === 0) {
-        area.innerHTML += '<p style="color:#999;width:100%;text-align:center;">暂无符合条件的股票</p>';
-        return;
-    }
-
-    data.sections.forEach(function (section) {
-        area.insertAdjacentHTML('beforeend', buildDateHeaderHtml(
+    snapshot.sections.forEach(function (section) {
+        content.insertAdjacentHTML('beforeend', buildDateHeaderHtml(
             section.date,
             section.threshold,
-            '本日累计为正 ' + section.stocks.length + ' 只（统计至 ' + data.latest_date + '）'
+            '本日累计为正 ' + section.stocks.length + ' 只（统计至 ' + asOfDate + '）'
         ));
         var row = document.createElement('div');
         row.className = 'card-row';
@@ -282,12 +343,114 @@ function showPositiveCum() {
             wrap.innerHTML = buildStockCardHtml(
                 stock.name, stock.stock,
                 trimFutureRows(stock.future, MAX_DISPLAY_DAY),
-                stock.cum_pct
+                stock.cum_pct,
+                asOfDate
             );
             row.appendChild(wrap);
         });
-        area.appendChild(row);
+        content.appendChild(row);
     });
+}
+
+function setCutoffDate(dateStr) {
+    var data = window.positiveCumData;
+    if (!data || !data.snapshots) return;
+
+    var snapshot = data.snapshots[dateStr];
+    if (!snapshot) return;
+
+    window._currentCutoff = dateStr;
+
+    var label = document.getElementById('cutoffDateLabel');
+    if (label) {
+        label.innerHTML = '当前查看：<b>' + dateStr + '</b>（共 ' + snapshot.total + ' 只累计为正）';
+    }
+
+    var slider = document.getElementById('cutoffSlider');
+    if (slider && data.cutoff_dates) {
+        slider.value = data.cutoff_dates.indexOf(dateStr);
+    }
+
+    document.querySelectorAll('.cutoff-btn').forEach(function (btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-date') === dateStr);
+    });
+
+    renderPositiveSnapshot(snapshot, dateStr);
+}
+
+function showPositiveCum() {
+    document.getElementById('imageBox').style.display = 'none';
+    document.getElementById('mainContainer').style.display = 'none';
+
+    var area = document.getElementById('futureChartArea');
+    area.innerHTML = '';
+    area.style.display = 'flex';
+
+    var data = window.positiveCumData;
+    if (!data || !data.snapshots || !data.cutoff_dates) {
+        area.innerHTML = '<p style="color:#999;width:100%;text-align:center;padding:40px;">请先运行 python index1.py 生成 positive_cum_data.js</p>';
+        return;
+    }
+
+    var intro = document.createElement('div');
+    intro.className = 'section-intro';
+    intro.innerHTML =
+        '<h2>最新日期累计增幅为正 · 日期存档</h2>' +
+        '数据范围：<b style="color:#fff;">' + data.cutoff_dates[0] + '</b> 至 <b style="color:#fff;">' + data.latest_date + '</b><br>' +
+        '规则：每个截止日，取该日前最近 <b style="color:#fff;">' + data.lookback_days + '</b> 个入选日的新增股，' +
+        '从 <b style="color:#fff;">T+1 开盘价</b> 持有至 <b style="color:#fff;">截止日收盘价</b> 累计涨幅 &gt; 0。<br>' +
+        '下方选择日期，可查看<strong>截至该日</strong>累计为正的股票及逐日走势。';
+    area.appendChild(intro);
+
+    var panel = document.createElement('div');
+    panel.className = 'cutoff-panel';
+    panel.innerHTML =
+        '<p class="cutoff-panel__title">选择截止交易日</p>' +
+        '<p class="cutoff-panel__current" id="cutoffDateLabel"></p>' +
+        '<div class="cutoff-nav">' +
+        '<button type="button" id="cutoffPrev">◀ 上一日</button>' +
+        '<button type="button" id="cutoffNext">下一日 ▶</button>' +
+        '<button type="button" id="cutoffLatest">最新日</button>' +
+        '</div>' +
+        '<input type="range" class="cutoff-slider" id="cutoffSlider" min="0" max="' + (data.cutoff_dates.length - 1) + '" value="' + (data.cutoff_dates.length - 1) + '">' +
+        '<div class="cutoff-dates" id="cutoffDates"></div>';
+    area.appendChild(panel);
+
+    var datesWrap = panel.querySelector('#cutoffDates');
+    data.cutoff_dates.forEach(function (d) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'cutoff-btn';
+        btn.setAttribute('data-date', d);
+        btn.textContent = d.slice(5);
+        btn.onclick = function () { setCutoffDate(d); };
+        datesWrap.appendChild(btn);
+    });
+
+    var content = document.createElement('div');
+    content.id = 'positiveCumContent';
+    area.appendChild(content);
+
+    var slider = document.getElementById('cutoffSlider');
+    slider.oninput = function () {
+        setCutoffDate(data.cutoff_dates[parseInt(slider.value, 10)]);
+    };
+
+    document.getElementById('cutoffPrev').onclick = function () {
+        var i = data.cutoff_dates.indexOf(window._currentCutoff || data.default_cutoff);
+        if (i > 0) setCutoffDate(data.cutoff_dates[i - 1]);
+    };
+
+    document.getElementById('cutoffNext').onclick = function () {
+        var i = data.cutoff_dates.indexOf(window._currentCutoff || data.default_cutoff);
+        if (i < data.cutoff_dates.length - 1) setCutoffDate(data.cutoff_dates[i + 1]);
+    };
+
+    document.getElementById('cutoffLatest').onclick = function () {
+        setCutoffDate(data.latest_date);
+    };
+
+    setCutoffDate(data.default_cutoff || data.latest_date);
     window.scrollTo(0, 0);
 }
 
