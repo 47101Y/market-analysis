@@ -419,7 +419,7 @@ bar = (
             subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n然后分为两类:T日增跌幅<0,T+1日>0(弱转强) 以及T日增跌幅>0,T+1日>0的股票(强者恒强)',
 
             subtitle_textstyle_opts=opts.TextStyleOpts(
-                font_size=13,       # 字体变大（默认12，你可以改14/15/16）
+                font_size=12,       # 字体变大（默认12，你可以改14/15/16）
                 line_height=22,     # 行间距变大 → 文字更宽松
                 color="#cccccc",    # 颜色（深色主题用浅灰更舒服）
                 font_weight="normal"
