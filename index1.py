@@ -144,7 +144,8 @@ for _, row in new_df.iterrows():
 # 第五部分：最新日期累计增幅为正（过去10个入选日）
 # =========================
 
-LOOKBACK_DAYS = 10
+# 统计最近 N 个有数据的入选日（含再早 1 日，例如最新 5/25 时纳入 5/11）
+LOOKBACK_DAYS = 11
 MAX_DISPLAY_DAY = 10
 
 
