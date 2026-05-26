@@ -381,6 +381,55 @@ with open('positive_cum.html', 'w', encoding='utf-8') as f:
     ))
 
 
+def build_positive_cum_payload(rows, latest_date, lookback_dates, thresholds):
+    grouped = defaultdict(list)
+    for r in rows:
+        grouped[r['add_date']].append({
+            'name': r['name'],
+            'stock': r['stock'],
+            'cum_pct': float(r['cum_pct']),
+            'future': [
+                {
+                    'day': int(fd['day']),
+                    'open': float(fd['open']),
+                    'close': float(fd['close']),
+                    'cum_pct': float(fd['cum_pct']),
+                }
+                for fd in r['future_days']
+            ],
+        })
+
+    sections = []
+    for add_date in lookback_dates:
+        stocks = grouped.get(add_date, [])
+        if not stocks:
+            continue
+        sections.append({
+            'date': add_date,
+            'threshold': float(thresholds.get(add_date, 0) or 0),
+            'stocks': stocks,
+        })
+
+    return {
+        'latest_date': latest_date,
+        'lookback_dates': lookback_dates,
+        'sections': sections,
+    }
+
+
+positive_cum_payload = build_positive_cum_payload(
+    positive_cum_rows,
+    latest_trade_date,
+    last_n_selection_dates,
+    threshold_dict,
+)
+
+with open('positive_cum_data.js', 'w', encoding='utf-8') as f:
+    f.write('window.positiveCumData = ')
+    json.dump(positive_cum_payload, f, ensure_ascii=False)
+    f.write(';\n')
+
+
 # =========================
 # 第一部分：每日统计柱状图
 # =========================
@@ -571,5 +620,7 @@ heat_bar.render("heat.html")
 timeline.render("timeline_v2.html")
 
 print("Dashboard 生成完成！")
-print(f"最新交易日: {latest_trade_date}，累计为正: {len(positive_cum_rows)} 只，页面: positive_cum.html")
+print(f"最新交易日: {latest_trade_date}，累计为正: {len(positive_cum_rows)} 只")
+print("  -> positive_cum_data.js（index.html 第五标签用）")
+print("  -> positive_cum.html（可单独打开）")
             
