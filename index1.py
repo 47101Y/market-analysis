@@ -545,5 +545,21 @@ timeline.render("timeline_v2.html")
 
 print("Dashboard 生成完成！")
 print(f"最新交易日: {latest_trade_date}，累计为正: {len(positive_cum_rows)} 只")
+print(f"  -> 入选日共 {LOOKBACK_DAYS} 天: {last_n_selection_dates[0]} ~ {last_n_selection_dates[-1]}")
 print("  -> positive_cum_data.js / positive_cum.html 已更新")
+
+# 更新 index.html 中 JS 缓存参数，避免浏览器仍加载旧的 10 日数据
+cache_ver = f"{latest_trade_date}-d{LOOKBACK_DAYS}"
+with open("index.html", "r", encoding="utf-8") as f:
+    index_html = f.read()
+new_src = f"positive_cum_data.js?v={cache_ver}"
+if "positive_cum_data.js?v=" in index_html:
+    i = index_html.find("positive_cum_data.js?v=")
+    j = index_html.find('"', i)
+    index_html = index_html[:i] + new_src + index_html[j:]
+else:
+    index_html = index_html.replace("positive_cum_data.js", new_src, 1)
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(index_html)
+print(f"  -> index.html 已刷新脚本缓存参数: ?v={cache_ver}")
             
