@@ -1,12 +1,128 @@
+import re
+
 import pandas as pd
-from pyecharts.charts import Bar, Pie, Timeline, Page
+from pyecharts.charts import Bar, Timeline
 from pyecharts import options as opts
-from pyecharts.globals import ThemeType
 from collections import defaultdict
 from pyecharts.globals import CurrentConfig
 import json
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
+
+# 与 dashboard.css 一致的全站图表主题
+CHART_BG = "#0b0e14"
+CHART_COLORS = {
+    "新增": "#2563eb",
+    "弱转强": "#26a69a",
+    "强者恒强": "#ef5350",
+    "行业": "#3b82f6",
+    "数量": "#2563eb",
+}
+HEATMAP_RANGE = ["#181e2a", "#1e3a5f", "#2563eb", "#e8b84a"]
+
+
+def chart_init_opts(height="720px"):
+    return opts.InitOpts(
+        width="100%",
+        height=height,
+        bg_color=CHART_BG,
+    )
+
+
+def chart_title_opts(title, subtitle=None):
+    return opts.TitleOpts(
+        title=title,
+        subtitle=subtitle or "",
+        pos_left="center",
+        title_textstyle_opts=opts.TextStyleOpts(
+            color="#e8b84a", font_size=18, font_family="Microsoft YaHei"
+        ),
+        subtitle_textstyle_opts=opts.TextStyleOpts(
+            color="#9aa4b8", font_size=12, font_family="Microsoft YaHei"
+        ),
+    )
+
+
+def chart_legend_opts(pos_top="8%"):
+    return opts.LegendOpts(
+        pos_top=pos_top,
+        textstyle_opts=opts.TextStyleOpts(color="#9aa4b8", font_size=12),
+    )
+
+
+def chart_axis_opts(rotate=45):
+    return opts.AxisOpts(
+        axislabel_opts=opts.LabelOpts(
+            color="#9aa4b8", rotate=rotate, font_size=11, font_family="Microsoft YaHei"
+        ),
+        axisline_opts=opts.AxisLineOpts(
+            linestyle_opts=opts.LineStyleOpts(color="#2a3344")
+        ),
+        splitline_opts=opts.SplitLineOpts(
+            is_show=True,
+            linestyle_opts=opts.LineStyleOpts(color="#2a3344", opacity=0.35),
+        ),
+    )
+
+
+def chart_tooltip_opts():
+    return opts.TooltipOpts(
+        trigger="axis",
+        background_color="rgba(24, 30, 42, 0.96)",
+        border_color="#2a3344",
+        textstyle_opts=opts.TextStyleOpts(color="#e8ecf4", font_size=12),
+    )
+
+
+def chart_datazoom_opts():
+    return [opts.DataZoomOpts()]
+
+
+def chart_visualmap_opts(max_value):
+    return opts.VisualMapOpts(
+        max_=int(max_value),
+        pos_right="5%",
+        pos_top="middle",
+        range_color=HEATMAP_RANGE,
+        textstyle_opts=opts.TextStyleOpts(color="#9aa4b8"),
+        border_color="#2a3344",
+    )
+
+
+def inject_chart_page_style(html_path, page_title):
+    """为 pyecharts 生成的 HTML 注入与 dashboard 一致的外观。"""
+    with open(html_path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    if "dashboard.css" in html:
+        return
+
+    inject_head = f"""<link rel="stylesheet" href="dashboard.css">
+    <title>{page_title}</title>
+    <style>
+      html, body.chart-page {{
+        margin: 0;
+        padding: 0;
+        background: {CHART_BG} !important;
+        font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+      }}
+      .chart-container {{
+        background: {CHART_BG} !important;
+      }}
+    </style>"""
+
+    html = html.replace("<head>", f"<head>\n{inject_head}", 1)
+    html = html.replace("<body >", '<body class="chart-page">', 1)
+    html = html.replace("<body>", '<body class="chart-page">', 1)
+    # 不用 echarts 内置主题，避免覆盖自定义配色
+    html = re.sub(
+        r",\s*'(dark|white|light)',\s*\{renderer",
+        ", null, {renderer",
+        html,
+    )
+
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(html)
 
 
 # =========================
@@ -393,25 +509,34 @@ result = result.merge(strong_count, on='date', how='left')
 result = result.fillna(0)
 
 bar = (
-    Bar(init_opts=opts.InitOpts(
-        width="100%",
-        height="760px",
-        theme=ThemeType.DARK
-    ))
+    Bar(init_opts=chart_init_opts())
     .add_xaxis(result['date'].tolist())
-    .add_yaxis('新增', result['新增'].tolist())
-    .add_yaxis('弱转强', result['弱转强'].tolist())
-    .add_yaxis('强者恒强', result['强者恒强'].tolist())
+    .add_yaxis(
+        '新增',
+        result['新增'].tolist(),
+        itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['新增']),
+    )
+    .add_yaxis(
+        '弱转强',
+        result['弱转强'].tolist(),
+        itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['弱转强']),
+    )
+    .add_yaxis(
+        '强者恒强',
+        result['强者恒强'].tolist(),
+        itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['强者恒强']),
+    )
     .set_global_opts(
-        title_opts=opts.TitleOpts(
-            title='每日成交额TOP50统计',
-            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n' 
-            '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
+        title_opts=chart_title_opts(
+            '每日成交额TOP50统计',
+            '本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n'
+            '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票',
         ),
-        tooltip_opts=opts.TooltipOpts(trigger='axis'),
-        xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
-        datazoom_opts=[opts.DataZoomOpts()],
-        legend_opts=opts.LegendOpts(pos_top='10%')
+        tooltip_opts=chart_tooltip_opts(),
+        xaxis_opts=chart_axis_opts(rotate=45),
+        yaxis_opts=chart_axis_opts(rotate=0),
+        datazoom_opts=chart_datazoom_opts(),
+        legend_opts=chart_legend_opts(pos_top='10%'),
     )
 )
 
@@ -477,19 +602,21 @@ industry_count = new_df['industry'].value_counts().reset_index()
 industry_count.columns = ['industry', 'count']
 
 heat_bar = (
-    Bar(init_opts=opts.InitOpts(
-        width="100%",
-        height="760px",
-        theme=ThemeType.DARK
-    ))
+    Bar(init_opts=chart_init_opts())
     .add_xaxis(industry_count['industry'].tolist())
-    .add_yaxis('行业出现次数', industry_count['count'].tolist(), category_gap='40%')
+    .add_yaxis(
+        '行业出现次数',
+        industry_count['count'].tolist(),
+        category_gap='40%',
+        itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['行业']),
+    )
     .set_global_opts(
-        title_opts=opts.TitleOpts(title='行业热力分布'),
-        xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
-        visualmap_opts=opts.VisualMapOpts(max_=int(industry_count['count'].max()),
-                                        pos_right="5%", 
-                                        pos_top="middle")
+        title_opts=chart_title_opts('行业热力分布'),
+        tooltip_opts=chart_tooltip_opts(),
+        xaxis_opts=chart_axis_opts(rotate=45),
+        yaxis_opts=chart_axis_opts(rotate=0),
+        visualmap_opts=chart_visualmap_opts(industry_count['count'].max()),
+        legend_opts=chart_legend_opts(),
     )
 )
 
@@ -499,9 +626,7 @@ heat_bar = (
 # =========================
 
 rotation_group = new_df.groupby(['date', 'industry']).size().reset_index(name='count')
-timeline = Timeline(init_opts=opts.InitOpts(        width="100%",
-                                                    height="760px",
-                                                    theme=ThemeType.DARK))
+timeline = Timeline(init_opts=chart_init_opts())
 
 
 for d in sorted(rotation_group['date'].unique()):
@@ -509,19 +634,28 @@ for d in sorted(rotation_group['date'].unique()):
     bar_day = (
         Bar()
         .add_xaxis(temp['industry'].tolist())
-        .add_yaxis('数量', temp['count'].tolist())
+        .add_yaxis(
+            '数量',
+            temp['count'].tolist(),
+            itemstyle_opts=opts.ItemStyleOpts(color=CHART_COLORS['数量']),
+        )
         .set_global_opts(
-            title_opts=opts.TitleOpts(title=f'{d} 行业轮动'),
-            xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
-            visualmap_opts=opts.VisualMapOpts(max_=int(temp['count'].max()),
-                                            pos_right="5%",   # 离右边 5%，往左挪，靠近主图
-                                            pos_top="middle"  # 垂直居中，和主图对齐
-                                              )
+            title_opts=chart_title_opts(f'{d} 行业轮动'),
+            tooltip_opts=chart_tooltip_opts(),
+            xaxis_opts=chart_axis_opts(rotate=45),
+            yaxis_opts=chart_axis_opts(rotate=0),
+            visualmap_opts=chart_visualmap_opts(temp['count'].max()),
+            legend_opts=chart_legend_opts(),
         )
     )
     timeline.add(bar_day, time_point=d)
 
-timeline.add_schema(play_interval=1400, is_auto_play=True, is_loop_play=False)
+timeline.add_schema(
+    play_interval=1400,
+    is_auto_play=True,
+    is_loop_play=False,
+    label_opts=opts.LabelOpts(color="#9aa4b8", font_size=12),
+)
 
 
 # =========================
@@ -531,6 +665,10 @@ timeline.add_schema(play_interval=1400, is_auto_play=True, is_loop_play=False)
 bar.render("bar.html")
 heat_bar.render("heat.html")
 timeline.render("timeline_v2.html")
+
+inject_chart_page_style("bar.html", "每日成交额TOP50新增个股统计")
+inject_chart_page_style("heat.html", "新增股票行业热力分析")
+inject_chart_page_style("timeline_v2.html", "新增股票行业轮动")
 
 print("Dashboard 生成完成！")
 print(f"最新交易日: {latest_trade_date}，累计为正: {len(positive_cum_rows)} 只")
