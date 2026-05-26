@@ -1,223 +1,192 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>每日成交额TOP50新增股票未来十日追踪</title>
-    <link rel="stylesheet" href="dashboard.css">
     <script src="https://assets.pyecharts.org/assets/v5/echarts.min.js"></script>
+    <style>
+
+    body{
+        margin:0;
+        padding:0;
+        background:#111;
+        font-family:Arial;
+        overflow-x: hidden;
+    }
+
+    .tab{
+        background:#1b1b1b;
+        padding:15px;
+    }
+
+    .tab button{
+        background:#333;
+        color:white;
+        border:none;
+        padding:12px 20px;
+        margin-right:10px;
+        border-radius:8px;
+        cursor:pointer;
+        font-size:15px;
+    }
+
+    .tab button:hover{
+        background:#555;
+    }
+
+    .main-container{
+        position:relative;
+        width:100%;
+        height: calc(100vh - 80px);
+        background:#111;
+        overflow:hidden;
+    }
+
+    iframe{
+        width:100%;
+        height:100%;
+        border:none;
+        background:transparent;
+        margin:0;
+        padding:0;
+        display: block;
+    }
+
+    #futureChartArea{
+        width:100%;
+        background:#111;
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+        gap:20px;
+        padding:20px;
+        box-sizing:border-box;
+    }
+
+    .futureChartBox{
+        width:520px;
+        height:420px;
+        background:#1b1b1b;
+        border-radius:12px;
+        padding:10px;
+    }
+
+    </style>
 </head>
 
 <body>
 
-<div class="tab-bar" id="tabBar">
-    <button class="active" data-tab="bar" onclick="changePage('bar.html', this)">每日成交额TOP50新增个股统计</button>
-    <button data-tab="heat" onclick="changePage('heat.html', this)">新增股票行业热力分析</button>
-    <button data-tab="image" onclick="showImage(this)">新增股票行业热力图</button>
-    <button data-tab="timeline" onclick="changePage('timeline_v2.html', this)">新增股票行业轮动</button>
-    <button data-tab="positive" onclick="showPositiveCum(this)">最新日期累计增幅为正</button>
+<div class="tab">
+    <button onclick="changePage('bar.html')">每日成交额TOP50新增个股统计</button>
+    <button onclick="changePage('heat.html')">新增股票行业热力分析</button>
+    <button onclick="showImage()">新增股票行业热力图</button>
+    <button onclick="changePage('timeline_v2.html')">新增股票行业轮动</button>
+    <button onclick="changePage('positive_cum.html')">最新日期累计增幅为正</button>
 </div>
 
 <div class="main-container" id="mainContainer">
     <iframe id="frame" src="bar.html"></iframe>
 </div>
 
+<!-- 未来走势区域 -->
 <div id="futureChartArea"></div>
 
-<div id="imageBox">
-    <div class="image-panel">
-        <h2 class="image-panel__title">新增股票行业热力图</h2>
-        <img src="./new_heatmap.png" alt="新增股票行业热力图">
-    </div>
+<!-- 放图片 -->
+<div id="imageBox" style="
+    display:none;
+    width:100%;
+    height:900px;
+    background:#111;
+    justify-content:center;
+    align-items:flex-start;
+    padding:20px;
+    box-sizing:border-box;
+">
+    <img src="./new_heatmap.png" style="
+        max-width:90%;
+        max-height:800px;
+        height:auto;
+        border-radius:12px;
+        box-shadow:0 0 20px rgba(255,255,255,0.15);
+    ">
 </div>
 
-<script src="positive_cum_data.js"></script>
 <script>
-var MAX_DISPLAY_DAY = 10;
+function changePage(page) {
+    document.getElementById("futureChartArea").innerHTML = "";
+    document.getElementById("imageBox").style.display = "none";
+    document.getElementById("mainContainer").style.display = "block";
+    document.getElementById("frame").src = page;
 
-function setActiveTab(btn) {
-    document.querySelectorAll('#tabBar button').forEach(function (b) {
-        b.classList.remove('active');
-    });
-    if (btn) btn.classList.add('active');
-}
-
-/** 只保留 0~10 日且有开盘价/收盘价的数据，遇空行停止 */
-function trimFutureRows(futureList, maxDay) {
-    maxDay = maxDay == null ? MAX_DISPLAY_DAY : maxDay;
-    var rows = [];
-    for (var i = 0; i < futureList.length; i++) {
-        var row = futureList[i];
-        if (row.day > maxDay) break;
-        var o = row.open, c = row.close;
-        if (o == null || c == null || o === '' || c === '' || Number.isNaN(Number(o))) break;
-        rows.push(row);
-    }
-    return rows;
-}
-
-/** 统一股票纵向卡片（第一板块 & 第五板块共用） */
-function buildStockCardHtml(name, stock, futureRows, summaryPct) {
-    var html = '<div class="stock-card">';
-    html += '<h3 class="stock-card__title">' + name + '（' + stock + '）</h3>';
-
-    if (summaryPct !== undefined && summaryPct !== null) {
-        var cls = summaryPct > 0 ? 'stock-card__summary--up' : 'stock-card__summary--down';
-        html += '<p class="stock-card__summary ' + cls + '">';
-        html += '截至最新日自T+1累计：' + (summaryPct * 100).toFixed(2) + '%';
-        html += '</p>';
-    }
-
-    html += '<table class="stock-table"><thead><tr>';
-    html += '<th>第N日</th><th>开盘价</th><th>收盘价</th><th>自T+1日涨跌幅</th>';
-    html += '</tr></thead><tbody>';
-
-    futureRows.forEach(function (row) {
-        var pctCls = row.cum_pct > 0 ? 'pct-up' : 'pct-down';
-        var pct = (row.cum_pct * 100).toFixed(2) + '%';
-        html += '<tr>';
-        html += '<td>' + row.day + '</td>';
-        html += '<td>' + row.open + '</td>';
-        html += '<td>' + row.close + '</td>';
-        html += '<td class="' + pctCls + '">' + pct + '</td>';
-        html += '</tr>';
-    });
-
-    html += '</tbody></table></div>';
-    return html;
-}
-
-function buildDateHeaderHtml(date, threshold, extra) {
-    var html = '<div class="section-date-header">';
-    html += '<h3>' + date + ' 第50名成交额：' + threshold + ' 亿元</h3>';
-    if (extra) html += '<p>' + extra + '</p>';
-    html += '</div>';
-    return html;
-}
-
-function showPositiveCum(btn) {
-    setActiveTab(btn);
-    document.getElementById('imageBox').style.display = 'none';
-    document.getElementById('mainContainer').style.display = 'none';
-
-    var area = document.getElementById('futureChartArea');
-    area.innerHTML = '';
-    area.style.display = 'flex';
-
-    var data = window.positiveCumData;
-    if (!data || !data.sections) {
-        area.innerHTML = '<p class="empty-hint">请先在本目录运行 python index1.py 生成 positive_cum_data.js</p>';
-        return;
-    }
-
-    var intro = document.createElement('div');
-    intro.className = 'section-intro';
-    intro.innerHTML =
-        '<h2>最新日期累计增幅为正</h2>' +
-        '统计截至：<b>' + data.latest_date + '</b><br>' +
-        '入选日范围（最近 ' + data.lookback_dates.length + ' 个交易日）：' + data.lookback_dates.join('、') + '<br>' +
-        '规则：从 <b>T+1 开盘价</b> 持有至 <b>' + data.latest_date + '</b> 收盘价累计涨幅 &gt; 0。<br>' +
-        '下列每只股票展示 <b>T 日至 T+10 日</b> 走势（最多 11 行，无数据的天数自动隐藏）。';
-    area.appendChild(intro);
-
-    if (data.sections.length === 0) {
-        area.innerHTML += '<p class="empty-hint">暂无符合条件的股票</p>';
-        return;
-    }
-
-    data.sections.forEach(function (section) {
-        area.insertAdjacentHTML('beforeend', buildDateHeaderHtml(
-            section.date,
-            section.threshold,
-            '本日累计为正 ' + section.stocks.length + ' 只（统计至 ' + data.latest_date + '）'
-        ));
-
-        var row = document.createElement('div');
-        row.className = 'card-row';
-
-        section.stocks.forEach(function (stock) {
-            var wrap = document.createElement('div');
-            wrap.className = 'stock-card-wrap';
-            wrap.innerHTML = buildStockCardHtml(
-                stock.name,
-                stock.stock,
-                trimFutureRows(stock.future, MAX_DISPLAY_DAY),
-                stock.cum_pct
-            );
-            row.appendChild(wrap);
-        });
-
-        area.appendChild(row);
-    });
-
-    window.scrollTo(0, 0);
-}
-
-function changePage(page, btn) {
-    setActiveTab(btn);
-    document.getElementById('futureChartArea').innerHTML = '';
-    document.getElementById('imageBox').style.display = 'none';
-    document.getElementById('mainContainer').style.display = 'block';
-    document.getElementById('frame').src = page;
-
-    if (page === 'bar.html') {
-        document.getElementById('futureChartArea').style.display = 'flex';
-        document.getElementById('frame').onload = addHintToBarChart;
+    if (page === "bar.html") {
+        document.getElementById("futureChartArea").style.display = "flex";
+        document.getElementById("frame").onload = addHintToBarChart;
     } else {
-        document.getElementById('futureChartArea').style.display = 'none';
-        document.getElementById('frame').onload = null;
+        document.getElementById("futureChartArea").style.display = "none";
+        document.getElementById("frame").onload = null;
     }
 }
 
-function showImage(btn) {
-    setActiveTab(btn);
-    document.getElementById('futureChartArea').innerHTML = '';
-    document.getElementById('futureChartArea').style.display = 'none';
-    document.getElementById('mainContainer').style.display = 'none';
-    document.getElementById('imageBox').style.display = 'flex';
+function showImage() {
+    document.getElementById("futureChartArea").innerHTML = "";
+    document.getElementById("futureChartArea").style.display = "none";
+    document.getElementById("mainContainer").style.display = "none";
+    document.getElementById("imageBox").style.display = "flex";
 }
 
 function addHintToBarChart() {
-    var iframe = document.getElementById('frame');
+    const iframe = document.getElementById("frame");
     if (!iframe) return;
 
-    var timer = setInterval(function () {
+    // 轮询等待图表加载完成
+    const timer = setInterval(() => {
         try {
-            var chart = iframe.contentWindow.myChart;
+            const chart = iframe.contentWindow.myChart;
             if (chart) {
+                const hintText = " 点击新增柱体，查看未来走势详情";
+                const verticalText = hintText.split('').join('\n');
+
                 chart.setOption({
                     graphic: {
                         elements: [{
-                            type: 'text',
-                            right: '6.5%',
-                            top: '30%',
+                            type: "text",
+                            right: "6.5%",
+                            top: "30%",
                             silent: true,
                             z: 100,
                             style: {
-                                text: '点\n击\n新\n增\n柱\n体\n查\n看\n走\n势',
-                                fontSize: 15,
-                                fontWeight: '600',
-                                fill: '#9aa4b8',
-                                opacity: 0.85,
-                                textAlign: 'center',
-                                lineHeight: 22
+                                text: verticalText,
+                                fontSize: 16,
+                                fontWeight: "bold",
+                                fill: "#ffffff",
+                                opacity: 0.8,
+                                textAlign: "center",
+                                lineHeight: 20
                             }
                         }]
                     }
                 });
-                clearInterval(timer);
+                clearInterval(timer); // 找到后停止轮询
             }
         } catch (e) {}
     }, 100);
 }
 
 window.onload = function () {
+
+    var iframe = document.getElementById('frame');
+
+    // 默认首页直接添加提示
     addHintToBarChart();
-    document.getElementById('frame').addEventListener('load', function () {
-        if (document.getElementById('frame').src.includes('bar.html')) {
+
+    // 后续切换页面继续监听
+    iframe.addEventListener('load', function () {
+
+        if (iframe.src.includes('bar.html')) {
             addHintToBarChart();
         }
+
     });
 };
 </script>
