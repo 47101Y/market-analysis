@@ -417,7 +417,6 @@ bar = (
         title_opts=opts.TitleOpts(
             title='每日成交额TOP50统计',
             subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n然后分为两类:T日增跌幅<0,T+1日>0(弱转强) 以及T日增跌幅>0,T+1日>0的股票(强者恒强)',
-            pos_left='center',
             pos_top='1%',
             item_gap=6,
             subtitle_textstyle_opts=opts.TextStyleOpts(
