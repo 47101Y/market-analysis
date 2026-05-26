@@ -126,6 +126,9 @@ function changePage(page) {
         document.getElementById("futureChartArea").style.display = "none";
         document.getElementById("frame").onload = null;
     }
+
+    // 累计为正页内容较多，iframe 内可滚动查看全部卡片
+    document.getElementById("frame").style.overflow = (page === "positive_cum.html") ? "auto" : "";
 }
 
 function showImage() {

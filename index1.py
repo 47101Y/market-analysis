@@ -146,6 +146,28 @@ for _, row in new_df.iterrows():
 
 LOOKBACK_DAYS = 10
 
+
+def _price_valid(val):
+    if val is None:
+        return False
+    try:
+        return not pd.isna(val)
+    except TypeError:
+        return True
+
+
+def trim_future_rows(future_list, max_day):
+    """只保留有数据的天数，遇到空行即停止（不显示后续空行）。"""
+    rows = []
+    for r in future_list:
+        if r['day'] > max_day:
+            break
+        if not _price_valid(r.get('open')) or not _price_valid(r.get('close')):
+            break
+        rows.append(r)
+    return rows
+
+
 latest_trade_date = future_df['trade_date'].max()
 selection_dates = sorted(new_df['date'].unique())
 last_n_selection_dates = selection_dates[-LOOKBACK_DAYS:]
@@ -186,6 +208,7 @@ for add_date in last_n_selection_dates:
         if cum_pct <= 0:
             continue
 
+        future_list = future_dict.get(add_date, {}).get(stock, [])
         positive_cum_rows.append({
             'add_date': add_date,
             'stock': stock,
@@ -195,31 +218,72 @@ for add_date in last_n_selection_dates:
             'latest_close': round(latest_close, 4),
             'cum_pct': cum_pct,
             'hold_days': day_seq,
+            'future_days': trim_future_rows(future_list, day_seq),
         })
 
 positive_cum_rows.sort(key=lambda x: (x['add_date'], -x['cum_pct']))
 
 
-def render_positive_cum_html(rows, latest_date, lookback_dates):
+def render_stock_card(name, stock, future_days):
+    body_rows = []
+    for row in future_days:
+        cum_pct = row['cum_pct']
+        color = '#ff4d4f' if cum_pct > 0 else '#52c41a'
+        pct_str = f"{cum_pct * 100:.2f}%"
+        body_rows.append(f"""
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">{row['day']}</td>
+                <td style="padding:6px; border:1px solid #444;">{row['open']}</td>
+                <td style="padding:6px; border:1px solid #444;">{row['close']}</td>
+                <td style="padding:6px; border:1px solid #444; color:{color}; font-weight:bold;">{pct_str}</td>
+            </tr>""")
+
+    return f"""
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">{name}（{stock}）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                {''.join(body_rows)}
+            </table>
+        </div>
+    </div>"""
+
+
+def render_positive_cum_html(rows, latest_date, lookback_dates, thresholds):
     date_summary = ', '.join(lookback_dates)
-    table_rows_html = []
+    grouped = defaultdict(list)
     for r in rows:
-        pct_str = f"{r['cum_pct'] * 100:.2f}%"
-        table_rows_html.append(f"""
-        <tr>
-            <td>{r['add_date']}</td>
-            <td>{r['stock']}</td>
-            <td>{r['name']}</td>
-            <td>{r['industry']}</td>
-            <td>{r['t1_open']}</td>
-            <td>{r['latest_close']}</td>
-            <td>T+{r['hold_days']}</td>
-            <td style="color:#ff4d4f;font-weight:bold;">{pct_str}</td>
-        </tr>""")
+        grouped[r['add_date']].append(r)
+
+    date_sections = []
+    for add_date in lookback_dates:
+        stocks = grouped.get(add_date, [])
+        if not stocks:
+            continue
+
+        threshold = thresholds.get(add_date, 0)
+        cards_html = ''.join(
+            render_stock_card(s['name'], s['stock'], s['future_days'])
+            for s in stocks
+        )
+        date_sections.append(f"""
+        <section class="date-block">
+            <div class="date-header">
+                <h3>{add_date} 第50名成交额：{threshold} 亿元</h3>
+                <p>本日累计为正 {len(stocks)} 只（统计至 {latest_date}）</p>
+            </div>
+            <div class="card-area">{cards_html}</div>
+        </section>""")
 
     empty_hint = (
-        '<tr><td colspan="8" style="padding:24px;color:#999;">暂无符合条件的股票</td></tr>'
-        if not table_rows_html else ''
+        '<p class="empty-hint">暂无符合条件的股票</p>'
+        if not date_sections else ''
     )
 
     html = f"""<!DOCTYPE html>
@@ -236,21 +300,63 @@ def render_positive_cum_html(rows, latest_date, lookback_dates):
             font-family: Arial, sans-serif;
         }}
         h2 {{ margin: 0 0 8px; color: #ffd666; }}
-        .meta {{ color: #8b9cb3; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }}
-        .wrap {{ overflow-x: auto; }}
-        table {{
-            width: 100%;
-            min-width: 960px;
-            border-collapse: collapse;
-            font-size: 13px;
-            text-align: center;
+        .meta {{
+            color: #8b9cb3;
+            margin-bottom: 24px;
+            font-size: 14px;
+            line-height: 1.6;
         }}
-        th, td {{
-            padding: 10px 8px;
+        .date-block {{ margin-bottom: 40px; }}
+        .date-header {{
+            width: 100%;
+            padding: 15px;
+            color: #fff;
+            background: #1f1f1f;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }}
+        .date-header h3 {{ margin: 0 0 6px; font-size: 18px; }}
+        .date-header p {{ margin: 0; color: #8b9cb3; font-size: 13px; }}
+        .card-area {{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }}
+        .stock-card {{
+            width: 480px;
+            flex-shrink: 0;
+            margin-bottom: 10px;
+        }}
+        .stock-card-inner {{
+            background: #1f1f1f;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+        }}
+        .stock-title {{
+            text-align: center;
+            margin: 0 0 15px;
+            color: #ffd666;
+            font-size: 16px;
+        }}
+        .stock-table {{
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 13px;
+        }}
+        .stock-table th,
+        .stock-table td {{
+            padding: 6px;
             border: 1px solid #444;
         }}
-        th {{ background: #333; }}
-        tr:nth-child(even) {{ background: #1a1a1a; }}
+        .empty-hint {{
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }}
     </style>
 </head>
 <body>
@@ -260,25 +366,7 @@ def render_positive_cum_html(rows, latest_date, lookback_dates):
         入选日范围（最近 {len(lookback_dates)} 个交易日）：{date_summary}<br>
         规则：上述每个入选日的新增 TOP50 个股，若从 <b>T+1 开盘价</b> 持有至 <b>{latest_date}</b> 收盘价，累计涨幅 &gt; 0，则列入本表。
     </div>
-    <div class="wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>入选日期</th>
-                    <th>股票代码</th>
-                    <th>名称</th>
-                    <th>行业</th>
-                    <th>T+1开盘价</th>
-                    <th>最新收盘价</th>
-                    <th>持有至最新日</th>
-                    <th>自T+1累计涨幅</th>
-                </tr>
-            </thead>
-            <tbody>
-                {''.join(table_rows_html) if table_rows_html else empty_hint}
-            </tbody>
-        </table>
-    </div>
+    {''.join(date_sections) if date_sections else empty_hint}
 </body>
 </html>"""
     return html
@@ -289,6 +377,7 @@ with open('positive_cum.html', 'w', encoding='utf-8') as f:
         positive_cum_rows,
         latest_trade_date,
         last_n_selection_dates,
+        threshold_dict,
     ))
 
 

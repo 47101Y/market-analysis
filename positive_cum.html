@@ -12,21 +12,63 @@
             font-family: Arial, sans-serif;
         }
         h2 { margin: 0 0 8px; color: #ffd666; }
-        .meta { color: #8b9cb3; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
-        .wrap { overflow-x: auto; }
-        table {
-            width: 100%;
-            min-width: 960px;
-            border-collapse: collapse;
-            font-size: 13px;
-            text-align: center;
+        .meta {
+            color: #8b9cb3;
+            margin-bottom: 24px;
+            font-size: 14px;
+            line-height: 1.6;
         }
-        th, td {
-            padding: 10px 8px;
+        .date-block { margin-bottom: 40px; }
+        .date-header {
+            width: 100%;
+            padding: 15px;
+            color: #fff;
+            background: #1f1f1f;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        .date-header h3 { margin: 0 0 6px; font-size: 18px; }
+        .date-header p { margin: 0; color: #8b9cb3; font-size: 13px; }
+        .card-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+        .stock-card {
+            width: 480px;
+            flex-shrink: 0;
+            margin-bottom: 10px;
+        }
+        .stock-card-inner {
+            background: #1f1f1f;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+        }
+        .stock-title {
+            text-align: center;
+            margin: 0 0 15px;
+            color: #ffd666;
+            font-size: 16px;
+        }
+        .stock-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 13px;
+        }
+        .stock-table th,
+        .stock-table td {
+            padding: 6px;
             border: 1px solid #444;
         }
-        th { background: #333; }
-        tr:nth-child(even) { background: #1a1a1a; }
+        .empty-hint {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+        }
     </style>
 </head>
 <body>
@@ -36,414 +78,1947 @@
         入选日范围（最近 10 个交易日）：2026-05-12, 2026-05-13, 2026-05-14, 2026-05-15, 2026-05-18, 2026-05-19, 2026-05-20, 2026-05-21, 2026-05-22, 2026-05-25<br>
         规则：上述每个入选日的新增 TOP50 个股，若从 <b>T+1 开盘价</b> 持有至 <b>2026-05-25</b> 收盘价，累计涨幅 &gt; 0，则列入本表。
     </div>
-    <div class="wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>入选日期</th>
-                    <th>股票代码</th>
-                    <th>名称</th>
-                    <th>行业</th>
-                    <th>T+1开盘价</th>
-                    <th>最新收盘价</th>
-                    <th>持有至最新日</th>
-                    <th>自T+1累计涨幅</th>
+    
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-12 第50名成交额：71.88 亿元</h3>
+                <p>本日累计为正 4 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">剑桥科技（603083.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
                 </tr>
-            </thead>
-            <tbody>
                 
-        <tr>
-            <td>2026-05-12</td>
-            <td>603083.XSHG</td>
-            <td>剑桥科技</td>
-            <td>通信I</td>
-            <td>186.38</td>
-            <td>209.0</td>
-            <td>T+9</td>
-            <td style="color:#ff4d4f;font-weight:bold;">12.14%</td>
-        </tr>
-        <tr>
-            <td>2026-05-12</td>
-            <td>300395.XSHE</td>
-            <td>菲利华</td>
-            <td>国防军工I</td>
-            <td>143.17</td>
-            <td>151.46</td>
-            <td>T+9</td>
-            <td style="color:#ff4d4f;font-weight:bold;">5.79%</td>
-        </tr>
-        <tr>
-            <td>2026-05-12</td>
-            <td>300442.XSHE</td>
-            <td>润泽科技</td>
-            <td>通信I</td>
-            <td>90.9</td>
-            <td>94.58</td>
-            <td>T+9</td>
-            <td style="color:#ff4d4f;font-weight:bold;">4.05%</td>
-        </tr>
-        <tr>
-            <td>2026-05-12</td>
-            <td>002222.XSHE</td>
-            <td>福晶科技</td>
-            <td>电子I</td>
-            <td>108.05</td>
-            <td>111.89</td>
-            <td>T+9</td>
-            <td style="color:#ff4d4f;font-weight:bold;">3.55%</td>
-        </tr>
-        <tr>
-            <td>2026-05-13</td>
-            <td>002371.XSHE</td>
-            <td>北方华创</td>
-            <td>电子I</td>
-            <td>581.0</td>
-            <td>698.19</td>
-            <td>T+8</td>
-            <td style="color:#ff4d4f;font-weight:bold;">20.17%</td>
-        </tr>
-        <tr>
-            <td>2026-05-13</td>
-            <td>300604.XSHE</td>
-            <td>长川科技</td>
-            <td>电子I</td>
-            <td>225.0</td>
-            <td>248.0</td>
-            <td>T+8</td>
-            <td style="color:#ff4d4f;font-weight:bold;">10.22%</td>
-        </tr>
-        <tr>
-            <td>2026-05-13</td>
-            <td>002463.XSHE</td>
-            <td>沪电股份</td>
-            <td>电子I</td>
-            <td>114.38</td>
-            <td>122.54</td>
-            <td>T+8</td>
-            <td style="color:#ff4d4f;font-weight:bold;">7.13%</td>
-        </tr>
-        <tr>
-            <td>2026-05-13</td>
-            <td>002050.XSHE</td>
-            <td>三花智控</td>
-            <td>家用电器I</td>
-            <td>51.7</td>
-            <td>53.91</td>
-            <td>T+8</td>
-            <td style="color:#ff4d4f;font-weight:bold;">4.27%</td>
-        </tr>
-        <tr>
-            <td>2026-05-14</td>
-            <td>600183.XSHG</td>
-            <td>生益科技</td>
-            <td>电子I</td>
-            <td>93.38</td>
-            <td>116.52</td>
-            <td>T+7</td>
-            <td style="color:#ff4d4f;font-weight:bold;">24.78%</td>
-        </tr>
-        <tr>
-            <td>2026-05-14</td>
-            <td>601991.XSHG</td>
-            <td>大唐发电</td>
-            <td>公用事业I</td>
-            <td>6.99</td>
-            <td>7.4</td>
-            <td>T+7</td>
-            <td style="color:#ff4d4f;font-weight:bold;">5.87%</td>
-        </tr>
-        <tr>
-            <td>2026-05-15</td>
-            <td>688820.XSHG</td>
-            <td>盛合晶微</td>
-            <td>电子I</td>
-            <td>174.0</td>
-            <td>213.93</td>
-            <td>T+6</td>
-            <td style="color:#ff4d4f;font-weight:bold;">22.95%</td>
-        </tr>
-        <tr>
-            <td>2026-05-15</td>
-            <td>002371.XSHE</td>
-            <td>北方华创</td>
-            <td>电子I</td>
-            <td>601.0</td>
-            <td>698.19</td>
-            <td>T+6</td>
-            <td style="color:#ff4d4f;font-weight:bold;">16.17%</td>
-        </tr>
-        <tr>
-            <td>2026-05-15</td>
-            <td>300433.XSHE</td>
-            <td>蓝思科技</td>
-            <td>电子I</td>
-            <td>35.35</td>
-            <td>39.52</td>
-            <td>T+6</td>
-            <td style="color:#ff4d4f;font-weight:bold;">11.80%</td>
-        </tr>
-        <tr>
-            <td>2026-05-15</td>
-            <td>688012.XSHG</td>
-            <td>中微公司</td>
-            <td>电子I</td>
-            <td>441.0</td>
-            <td>485.3</td>
-            <td>T+6</td>
-            <td style="color:#ff4d4f;font-weight:bold;">10.05%</td>
-        </tr>
-        <tr>
-            <td>2026-05-15</td>
-            <td>688498.XSHG</td>
-            <td>源杰科技</td>
-            <td>电子I</td>
-            <td>1048.0</td>
-            <td>1084.16</td>
-            <td>T+6</td>
-            <td style="color:#ff4d4f;font-weight:bold;">3.45%</td>
-        </tr>
-        <tr>
-            <td>2026-05-15</td>
-            <td>600703.XSHG</td>
-            <td>三安光电</td>
-            <td>电子I</td>
-            <td>15.69</td>
-            <td>16.13</td>
-            <td>T+6</td>
-            <td style="color:#ff4d4f;font-weight:bold;">2.80%</td>
-        </tr>
-        <tr>
-            <td>2026-05-18</td>
-            <td>600183.XSHG</td>
-            <td>生益科技</td>
-            <td>电子I</td>
-            <td>97.85</td>
-            <td>116.52</td>
-            <td>T+5</td>
-            <td style="color:#ff4d4f;font-weight:bold;">19.08%</td>
-        </tr>
-        <tr>
-            <td>2026-05-18</td>
-            <td>002407.XSHE</td>
-            <td>多氟多</td>
-            <td>化工I</td>
-            <td>36.83</td>
-            <td>38.43</td>
-            <td>T+5</td>
-            <td style="color:#ff4d4f;font-weight:bold;">4.34%</td>
-        </tr>
-        <tr>
-            <td>2026-05-18</td>
-            <td>603667.XSHG</td>
-            <td>五洲新春</td>
-            <td>机械设备I</td>
-            <td>84.98</td>
-            <td>87.08</td>
-            <td>T+5</td>
-            <td style="color:#ff4d4f;font-weight:bold;">2.47%</td>
-        </tr>
-        <tr>
-            <td>2026-05-19</td>
-            <td>688808.XSHG</td>
-            <td>联讯仪器</td>
-            <td>机械设备I</td>
-            <td>1399.0</td>
-            <td>1813.48</td>
-            <td>T+4</td>
-            <td style="color:#ff4d4f;font-weight:bold;">29.63%</td>
-        </tr>
-        <tr>
-            <td>2026-05-19</td>
-            <td>000021.XSHE</td>
-            <td>深科技</td>
-            <td>电子I</td>
-            <td>38.38</td>
-            <td>41.15</td>
-            <td>T+4</td>
-            <td style="color:#ff4d4f;font-weight:bold;">7.22%</td>
-        </tr>
-        <tr>
-            <td>2026-05-19</td>
-            <td>603083.XSHG</td>
-            <td>剑桥科技</td>
-            <td>通信I</td>
-            <td>196.9</td>
-            <td>209.0</td>
-            <td>T+4</td>
-            <td style="color:#ff4d4f;font-weight:bold;">6.15%</td>
-        </tr>
-        <tr>
-            <td>2026-05-19</td>
-            <td>600118.XSHG</td>
-            <td>中国卫星</td>
-            <td>国防军工I</td>
-            <td>85.0</td>
-            <td>87.84</td>
-            <td>T+4</td>
-            <td style="color:#ff4d4f;font-weight:bold;">3.34%</td>
-        </tr>
-        <tr>
-            <td>2026-05-19</td>
-            <td>688126.XSHG</td>
-            <td>沪硅产业</td>
-            <td>电子I</td>
-            <td>29.0</td>
-            <td>29.05</td>
-            <td>T+4</td>
-            <td style="color:#ff4d4f;font-weight:bold;">0.17%</td>
-        </tr>
-        <tr>
-            <td>2026-05-20</td>
-            <td>688347.XSHG</td>
-            <td>华虹公司</td>
-            <td>电子I</td>
-            <td>177.72</td>
-            <td>214.8</td>
-            <td>T+3</td>
-            <td style="color:#ff4d4f;font-weight:bold;">20.86%</td>
-        </tr>
-        <tr>
-            <td>2026-05-20</td>
-            <td>688072.XSHG</td>
-            <td>拓荆科技</td>
-            <td>电子I</td>
-            <td>648.01</td>
-            <td>721.0</td>
-            <td>T+3</td>
-            <td style="color:#ff4d4f;font-weight:bold;">11.26%</td>
-        </tr>
-        <tr>
-            <td>2026-05-20</td>
-            <td>002185.XSHE</td>
-            <td>华天科技</td>
-            <td>电子I</td>
-            <td>16.0</td>
-            <td>16.97</td>
-            <td>T+3</td>
-            <td style="color:#ff4d4f;font-weight:bold;">6.06%</td>
-        </tr>
-        <tr>
-            <td>2026-05-20</td>
-            <td>601899.XSHG</td>
-            <td>紫金矿业</td>
-            <td>有色金属I</td>
-            <td>30.91</td>
-            <td>31.35</td>
-            <td>T+3</td>
-            <td style="color:#ff4d4f;font-weight:bold;">1.42%</td>
-        </tr>
-        <tr>
-            <td>2026-05-21</td>
-            <td>002463.XSHE</td>
-            <td>沪电股份</td>
-            <td>电子I</td>
-            <td>106.0</td>
-            <td>122.54</td>
-            <td>T+2</td>
-            <td style="color:#ff4d4f;font-weight:bold;">15.60%</td>
-        </tr>
-        <tr>
-            <td>2026-05-21</td>
-            <td>600183.XSHG</td>
-            <td>生益科技</td>
-            <td>电子I</td>
-            <td>102.1</td>
-            <td>116.52</td>
-            <td>T+2</td>
-            <td style="color:#ff4d4f;font-weight:bold;">14.12%</td>
-        </tr>
-        <tr>
-            <td>2026-05-21</td>
-            <td>300475.XSHE</td>
-            <td>香农芯创</td>
-            <td>电子I</td>
-            <td>181.21</td>
-            <td>204.56</td>
-            <td>T+2</td>
-            <td style="color:#ff4d4f;font-weight:bold;">12.89%</td>
-        </tr>
-        <tr>
-            <td>2026-05-21</td>
-            <td>002436.XSHE</td>
-            <td>兴森科技</td>
-            <td>电子I</td>
-            <td>35.57</td>
-            <td>38.12</td>
-            <td>T+2</td>
-            <td style="color:#ff4d4f;font-weight:bold;">7.17%</td>
-        </tr>
-        <tr>
-            <td>2026-05-21</td>
-            <td>000938.XSHE</td>
-            <td>紫光股份</td>
-            <td>计算机I</td>
-            <td>29.62</td>
-            <td>31.04</td>
-            <td>T+2</td>
-            <td style="color:#ff4d4f;font-weight:bold;">4.79%</td>
-        </tr>
-        <tr>
-            <td>2026-05-21</td>
-            <td>000100.XSHE</td>
-            <td>TCL科技</td>
-            <td>电子I</td>
-            <td>4.25</td>
-            <td>4.44</td>
-            <td>T+2</td>
-            <td style="color:#ff4d4f;font-weight:bold;">4.47%</td>
-        </tr>
-        <tr>
-            <td>2026-05-21</td>
-            <td>603019.XSHG</td>
-            <td>中科曙光</td>
-            <td>计算机I</td>
-            <td>93.26</td>
-            <td>96.45</td>
-            <td>T+2</td>
-            <td style="color:#ff4d4f;font-weight:bold;">3.42%</td>
-        </tr>
-        <tr>
-            <td>2026-05-22</td>
-            <td>300395.XSHE</td>
-            <td>菲利华</td>
-            <td>国防军工I</td>
-            <td>141.81</td>
-            <td>151.46</td>
-            <td>T+1</td>
-            <td style="color:#ff4d4f;font-weight:bold;">6.80%</td>
-        </tr>
-        <tr>
-            <td>2026-05-22</td>
-            <td>688313.XSHG</td>
-            <td>仕佳光子</td>
-            <td>通信I</td>
-            <td>177.0</td>
-            <td>182.12</td>
-            <td>T+1</td>
-            <td style="color:#ff4d4f;font-weight:bold;">2.89%</td>
-        </tr>
-        <tr>
-            <td>2026-05-22</td>
-            <td>000725.XSHE</td>
-            <td>京东方A</td>
-            <td>电子I</td>
-            <td>5.17</td>
-            <td>5.27</td>
-            <td>T+1</td>
-            <td style="color:#ff4d4f;font-weight:bold;">1.93%</td>
-        </tr>
-        <tr>
-            <td>2026-05-22</td>
-            <td>600176.XSHG</td>
-            <td>中国巨石</td>
-            <td>建筑材料I</td>
-            <td>38.97</td>
-            <td>39.42</td>
-            <td>T+1</td>
-            <td style="color:#ff4d4f;font-weight:bold;">1.15%</td>
-        </tr>
-            </tbody>
-        </table>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">202.72</td>
+                <td style="padding:6px; border:1px solid #444;">189.13</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-6.70%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">186.38</td>
+                <td style="padding:6px; border:1px solid #444;">191.35</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.67%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">204.69</td>
+                <td style="padding:6px; border:1px solid #444;">191.58</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.79%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">192.91</td>
+                <td style="padding:6px; border:1px solid #444;">187.83</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.78%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">188.27</td>
+                <td style="padding:6px; border:1px solid #444;">184.02</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.27%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">184.02</td>
+                <td style="padding:6px; border:1px solid #444;">202.42</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">8.61%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">196.9</td>
+                <td style="padding:6px; border:1px solid #444;">193.88</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.02%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">194.39</td>
+                <td style="padding:6px; border:1px solid #444;">179.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-3.86%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">8</td>
+                <td style="padding:6px; border:1px solid #444;">181.35</td>
+                <td style="padding:6px; border:1px solid #444;">190.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.94%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">9</td>
+                <td style="padding:6px; border:1px solid #444;">192.0</td>
+                <td style="padding:6px; border:1px solid #444;">209.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">12.14%</td>
+            </tr>
+            </table>
+        </div>
     </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">菲利华（300395.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">135.8</td>
+                <td style="padding:6px; border:1px solid #444;">148.16</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.10%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">143.17</td>
+                <td style="padding:6px; border:1px solid #444;">148.9</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.00%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">145.6</td>
+                <td style="padding:6px; border:1px solid #444;">140.52</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.85%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">141.82</td>
+                <td style="padding:6px; border:1px solid #444;">133.83</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-6.52%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">135.43</td>
+                <td style="padding:6px; border:1px solid #444;">137.5</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-3.96%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">135.9</td>
+                <td style="padding:6px; border:1px solid #444;">131.8</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-7.94%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">130.51</td>
+                <td style="padding:6px; border:1px solid #444;">133.97</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-6.43%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">137.6</td>
+                <td style="padding:6px; border:1px solid #444;">128.4</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-10.32%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">8</td>
+                <td style="padding:6px; border:1px solid #444;">129.9</td>
+                <td style="padding:6px; border:1px solid #444;">140.15</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-2.11%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">9</td>
+                <td style="padding:6px; border:1px solid #444;">141.81</td>
+                <td style="padding:6px; border:1px solid #444;">151.46</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">5.79%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">润泽科技（300442.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">96.68</td>
+                <td style="padding:6px; border:1px solid #444;">91.38</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-5.48%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">90.9</td>
+                <td style="padding:6px; border:1px solid #444;">101.62</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">11.79%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">103.43</td>
+                <td style="padding:6px; border:1px solid #444;">99.67</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.65%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">102.07</td>
+                <td style="padding:6px; border:1px solid #444;">102.46</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">12.72%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">103.89</td>
+                <td style="padding:6px; border:1px solid #444;">99.39</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.34%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">100.9</td>
+                <td style="padding:6px; border:1px solid #444;">98.33</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">8.17%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">97.0</td>
+                <td style="padding:6px; border:1px solid #444;">95.85</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">5.45%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">97.4</td>
+                <td style="padding:6px; border:1px solid #444;">91.58</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.75%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">8</td>
+                <td style="padding:6px; border:1px solid #444;">92.9</td>
+                <td style="padding:6px; border:1px solid #444;">93.35</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.70%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">9</td>
+                <td style="padding:6px; border:1px solid #444;">93.39</td>
+                <td style="padding:6px; border:1px solid #444;">94.58</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.05%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">福晶科技（002222.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">110.94</td>
+                <td style="padding:6px; border:1px solid #444;">113.36</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.18%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">108.05</td>
+                <td style="padding:6px; border:1px solid #444;">116.32</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.65%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">115.74</td>
+                <td style="padding:6px; border:1px solid #444;">113.76</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">5.28%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">112.74</td>
+                <td style="padding:6px; border:1px solid #444;">105.82</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-2.06%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">103.0</td>
+                <td style="padding:6px; border:1px solid #444;">104.73</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-3.07%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">103.15</td>
+                <td style="padding:6px; border:1px solid #444;">105.45</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-2.41%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">104.99</td>
+                <td style="padding:6px; border:1px solid #444;">108.1</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.05%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">108.99</td>
+                <td style="padding:6px; border:1px solid #444;">100.58</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-6.91%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">8</td>
+                <td style="padding:6px; border:1px solid #444;">100.58</td>
+                <td style="padding:6px; border:1px solid #444;">105.56</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-2.30%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">9</td>
+                <td style="padding:6px; border:1px solid #444;">109.0</td>
+                <td style="padding:6px; border:1px solid #444;">111.89</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.55%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-13 第50名成交额：72.78 亿元</h3>
+                <p>本日累计为正 4 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">北方华创（002371.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">570.99</td>
+                <td style="padding:6px; border:1px solid #444;">581.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.75%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">581.0</td>
+                <td style="padding:6px; border:1px solid #444;">564.4</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-2.86%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">569.8</td>
+                <td style="padding:6px; border:1px solid #444;">592.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.89%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">601.0</td>
+                <td style="padding:6px; border:1px solid #444;">597.97</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.92%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">590.0</td>
+                <td style="padding:6px; border:1px solid #444;">619.7</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">6.66%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">618.0</td>
+                <td style="padding:6px; border:1px solid #444;">656.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">12.91%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">656.8</td>
+                <td style="padding:6px; border:1px solid #444;">662.99</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">14.11%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">663.03</td>
+                <td style="padding:6px; border:1px solid #444;">669.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">15.15%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">8</td>
+                <td style="padding:6px; border:1px solid #444;">650.13</td>
+                <td style="padding:6px; border:1px solid #444;">698.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">20.17%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">长川科技（300604.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">210.12</td>
+                <td style="padding:6px; border:1px solid #444;">228.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">8.51%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">225.0</td>
+                <td style="padding:6px; border:1px solid #444;">208.87</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-7.17%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">213.04</td>
+                <td style="padding:6px; border:1px solid #444;">209.5</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-6.89%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">211.0</td>
+                <td style="padding:6px; border:1px solid #444;">209.17</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-7.04%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">208.49</td>
+                <td style="padding:6px; border:1px solid #444;">224.05</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.42%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">229.82</td>
+                <td style="padding:6px; border:1px solid #444;">241.56</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.36%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">244.0</td>
+                <td style="padding:6px; border:1px solid #444;">234.77</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.34%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">237.71</td>
+                <td style="padding:6px; border:1px solid #444;">236.02</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.90%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">8</td>
+                <td style="padding:6px; border:1px solid #444;">236.0</td>
+                <td style="padding:6px; border:1px solid #444;">248.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">10.22%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">沪电股份（002463.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">106.53</td>
+                <td style="padding:6px; border:1px solid #444;">112.58</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">5.68%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">114.38</td>
+                <td style="padding:6px; border:1px solid #444;">107.02</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-6.43%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">106.9</td>
+                <td style="padding:6px; border:1px solid #444;">102.99</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-9.96%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">101.55</td>
+                <td style="padding:6px; border:1px solid #444;">104.26</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-8.85%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">103.47</td>
+                <td style="padding:6px; border:1px solid #444;">102.6</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-10.30%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">102.6</td>
+                <td style="padding:6px; border:1px solid #444;">103.58</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-9.44%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">105.58</td>
+                <td style="padding:6px; border:1px solid #444;">103.7</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-9.34%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">106.0</td>
+                <td style="padding:6px; border:1px solid #444;">114.07</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.27%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">8</td>
+                <td style="padding:6px; border:1px solid #444;">121.02</td>
+                <td style="padding:6px; border:1px solid #444;">122.54</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.13%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">三花智控（002050.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">50.4</td>
+                <td style="padding:6px; border:1px solid #444;">51.5</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.18%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">51.7</td>
+                <td style="padding:6px; border:1px solid #444;">49.43</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-4.39%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">49.28</td>
+                <td style="padding:6px; border:1px solid #444;">52.06</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.70%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">52.0</td>
+                <td style="padding:6px; border:1px solid #444;">52.92</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.36%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">53.0</td>
+                <td style="padding:6px; border:1px solid #444;">52.33</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.22%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">51.7</td>
+                <td style="padding:6px; border:1px solid #444;">50.55</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-2.22%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">51.09</td>
+                <td style="padding:6px; border:1px solid #444;">52.83</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.19%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">52.51</td>
+                <td style="padding:6px; border:1px solid #444;">54.05</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.55%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">8</td>
+                <td style="padding:6px; border:1px solid #444;">54.4</td>
+                <td style="padding:6px; border:1px solid #444;">53.91</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.27%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-14 第50名成交额：74.29 亿元</h3>
+                <p>本日累计为正 2 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">生益科技（600183.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">98.11</td>
+                <td style="padding:6px; border:1px solid #444;">93.32</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-4.88%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">93.38</td>
+                <td style="padding:6px; border:1px solid #444;">89.95</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-3.67%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">90.23</td>
+                <td style="padding:6px; border:1px solid #444;">98.95</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">5.96%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">97.85</td>
+                <td style="padding:6px; border:1px solid #444;">100.78</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.92%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">99.51</td>
+                <td style="padding:6px; border:1px solid #444;">100.56</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.69%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">102.15</td>
+                <td style="padding:6px; border:1px solid #444;">98.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">5.15%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">102.1</td>
+                <td style="padding:6px; border:1px solid #444;">108.01</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">15.67%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">114.0</td>
+                <td style="padding:6px; border:1px solid #444;">116.52</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">24.78%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">大唐发电（601991.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">8.11</td>
+                <td style="padding:6px; border:1px solid #444;">7.2</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-11.22%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">6.99</td>
+                <td style="padding:6px; border:1px solid #444;">7.92</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">13.30%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">7.68</td>
+                <td style="padding:6px; border:1px solid #444;">7.93</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">13.45%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">7.93</td>
+                <td style="padding:6px; border:1px solid #444;">8.38</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">19.89%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">7.56</td>
+                <td style="padding:6px; border:1px solid #444;">7.54</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.87%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">6.9</td>
+                <td style="padding:6px; border:1px solid #444;">7.05</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.86%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">7.0</td>
+                <td style="padding:6px; border:1px solid #444;">6.89</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.43%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">7</td>
+                <td style="padding:6px; border:1px solid #444;">6.8</td>
+                <td style="padding:6px; border:1px solid #444;">7.4</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">5.87%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-15 第50名成交额：73.71 亿元</h3>
+                <p>本日累计为正 6 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">盛合晶微（688820.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">158.04</td>
+                <td style="padding:6px; border:1px solid #444;">183.84</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">16.32%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">174.0</td>
+                <td style="padding:6px; border:1px solid #444;">188.1</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">8.10%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">180.88</td>
+                <td style="padding:6px; border:1px solid #444;">182.67</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.98%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">180.27</td>
+                <td style="padding:6px; border:1px solid #444;">189.24</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">8.76%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">196.0</td>
+                <td style="padding:6px; border:1px solid #444;">176.8</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.61%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">179.98</td>
+                <td style="padding:6px; border:1px solid #444;">187.95</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">8.02%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">185.0</td>
+                <td style="padding:6px; border:1px solid #444;">213.93</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">22.95%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">北方华创（002371.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">569.8</td>
+                <td style="padding:6px; border:1px solid #444;">592.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.90%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">601.0</td>
+                <td style="padding:6px; border:1px solid #444;">597.97</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.50%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">590.0</td>
+                <td style="padding:6px; border:1px solid #444;">619.7</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.11%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">618.0</td>
+                <td style="padding:6px; border:1px solid #444;">656.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.15%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">656.8</td>
+                <td style="padding:6px; border:1px solid #444;">662.99</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">10.31%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">663.03</td>
+                <td style="padding:6px; border:1px solid #444;">669.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">11.31%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">650.13</td>
+                <td style="padding:6px; border:1px solid #444;">698.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">16.17%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">蓝思科技（300433.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">34.0</td>
+                <td style="padding:6px; border:1px solid #444;">34.21</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.62%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">35.35</td>
+                <td style="padding:6px; border:1px solid #444;">38.7</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.48%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">38.0</td>
+                <td style="padding:6px; border:1px solid #444;">37.96</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.38%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">37.2</td>
+                <td style="padding:6px; border:1px solid #444;">36.31</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.72%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">36.99</td>
+                <td style="padding:6px; border:1px solid #444;">36.51</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.28%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">35.86</td>
+                <td style="padding:6px; border:1px solid #444;">38.4</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">8.63%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">38.6</td>
+                <td style="padding:6px; border:1px solid #444;">39.52</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">11.80%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">中微公司（688012.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">393.36</td>
+                <td style="padding:6px; border:1px solid #444;">432.9</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">10.05%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">441.0</td>
+                <td style="padding:6px; border:1px solid #444;">438.75</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.51%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">432.17</td>
+                <td style="padding:6px; border:1px solid #444;">479.51</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">8.73%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">475.0</td>
+                <td style="padding:6px; border:1px solid #444;">490.33</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">11.19%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">490.62</td>
+                <td style="padding:6px; border:1px solid #444;">475.8</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.89%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">480.0</td>
+                <td style="padding:6px; border:1px solid #444;">469.6</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">6.49%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">453.36</td>
+                <td style="padding:6px; border:1px solid #444;">485.3</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">10.05%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">源杰科技（688498.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">1092.32</td>
+                <td style="padding:6px; border:1px solid #444;">1075.73</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.52%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">1048.0</td>
+                <td style="padding:6px; border:1px solid #444;">1058.08</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.96%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">1032.12</td>
+                <td style="padding:6px; border:1px solid #444;">1068.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.91%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">1065.0</td>
+                <td style="padding:6px; border:1px solid #444;">1114.94</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">6.39%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">1121.7</td>
+                <td style="padding:6px; border:1px solid #444;">1038.04</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.95%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">1060.0</td>
+                <td style="padding:6px; border:1px solid #444;">1066.4</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.76%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">1067.87</td>
+                <td style="padding:6px; border:1px solid #444;">1084.16</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.45%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">三安光电（600703.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">17.69</td>
+                <td style="padding:6px; border:1px solid #444;">16.16</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-8.65%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">15.69</td>
+                <td style="padding:6px; border:1px solid #444;">16.18</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.12%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">16.1</td>
+                <td style="padding:6px; border:1px solid #444;">16.85</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.39%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">16.6</td>
+                <td style="padding:6px; border:1px solid #444;">16.75</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">6.76%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">17.3</td>
+                <td style="padding:6px; border:1px solid #444;">15.7</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.06%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">15.99</td>
+                <td style="padding:6px; border:1px solid #444;">16.2</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.25%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">6</td>
+                <td style="padding:6px; border:1px solid #444;">16.25</td>
+                <td style="padding:6px; border:1px solid #444;">16.13</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.80%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-18 第50名成交额：56.73 亿元</h3>
+                <p>本日累计为正 3 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">生益科技（600183.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">90.23</td>
+                <td style="padding:6px; border:1px solid #444;">98.95</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.66%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">97.85</td>
+                <td style="padding:6px; border:1px solid #444;">100.78</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.99%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">99.51</td>
+                <td style="padding:6px; border:1px solid #444;">100.56</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.77%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">102.15</td>
+                <td style="padding:6px; border:1px solid #444;">98.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.35%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">102.1</td>
+                <td style="padding:6px; border:1px solid #444;">108.01</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">10.38%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">114.0</td>
+                <td style="padding:6px; border:1px solid #444;">116.52</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">19.08%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">多氟多（002407.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">37.03</td>
+                <td style="padding:6px; border:1px solid #444;">37.6</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.54%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">36.83</td>
+                <td style="padding:6px; border:1px solid #444;">36.99</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.43%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">36.5</td>
+                <td style="padding:6px; border:1px solid #444;">40.69</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">10.48%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">41.69</td>
+                <td style="padding:6px; border:1px solid #444;">40.81</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">10.81%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">41.02</td>
+                <td style="padding:6px; border:1px solid #444;">42.7</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">15.94%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">42.44</td>
+                <td style="padding:6px; border:1px solid #444;">38.43</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.34%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">五洲新春（603667.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">81.7</td>
+                <td style="padding:6px; border:1px solid #444;">85.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.04%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">84.98</td>
+                <td style="padding:6px; border:1px solid #444;">83.88</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.29%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">82.2</td>
+                <td style="padding:6px; border:1px solid #444;">80.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-5.86%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">80.1</td>
+                <td style="padding:6px; border:1px solid #444;">84.74</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.28%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">84.4</td>
+                <td style="padding:6px; border:1px solid #444;">88.17</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.75%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">5</td>
+                <td style="padding:6px; border:1px solid #444;">88.0</td>
+                <td style="padding:6px; border:1px solid #444;">87.08</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.47%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-19 第50名成交额：60.18 亿元</h3>
+                <p>本日累计为正 5 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">联讯仪器（688808.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">1275.0</td>
+                <td style="padding:6px; border:1px solid #444;">1399.96</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.80%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">1399.0</td>
+                <td style="padding:6px; border:1px solid #444;">1575.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">12.58%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">1580.0</td>
+                <td style="padding:6px; border:1px solid #444;">1530.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.36%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">1580.0</td>
+                <td style="padding:6px; border:1px solid #444;">1755.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">25.45%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">1713.0</td>
+                <td style="padding:6px; border:1px solid #444;">1813.48</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">29.63%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">深科技（000021.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">37.03</td>
+                <td style="padding:6px; border:1px solid #444;">37.67</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.73%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">38.38</td>
+                <td style="padding:6px; border:1px solid #444;">37.85</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.38%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">38.44</td>
+                <td style="padding:6px; border:1px solid #444;">36.37</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-5.24%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">37.22</td>
+                <td style="padding:6px; border:1px solid #444;">37.73</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.69%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">38.21</td>
+                <td style="padding:6px; border:1px solid #444;">41.15</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.22%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">剑桥科技（603083.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">184.02</td>
+                <td style="padding:6px; border:1px solid #444;">202.42</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">10.00%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">196.9</td>
+                <td style="padding:6px; border:1px solid #444;">193.88</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.53%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">194.39</td>
+                <td style="padding:6px; border:1px solid #444;">179.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-8.99%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">181.35</td>
+                <td style="padding:6px; border:1px solid #444;">190.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-3.50%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">192.0</td>
+                <td style="padding:6px; border:1px solid #444;">209.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">6.15%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">中国卫星（600118.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">90.66</td>
+                <td style="padding:6px; border:1px solid #444;">87.23</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-3.78%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">85.0</td>
+                <td style="padding:6px; border:1px solid #444;">86.36</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.60%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">86.36</td>
+                <td style="padding:6px; border:1px solid #444;">85.27</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.32%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">85.7</td>
+                <td style="padding:6px; border:1px solid #444;">85.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.22%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">86.0</td>
+                <td style="padding:6px; border:1px solid #444;">87.84</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.34%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">沪硅产业（688126.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">24.41</td>
+                <td style="padding:6px; border:1px solid #444;">29.52</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">20.93%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">29.0</td>
+                <td style="padding:6px; border:1px solid #444;">29.31</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.07%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">30.01</td>
+                <td style="padding:6px; border:1px solid #444;">27.68</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-4.55%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">28.05</td>
+                <td style="padding:6px; border:1px solid #444;">27.81</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-4.10%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">4</td>
+                <td style="padding:6px; border:1px solid #444;">27.81</td>
+                <td style="padding:6px; border:1px solid #444;">29.05</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.17%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-20 第50名成交额：62.71 亿元</h3>
+                <p>本日累计为正 4 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">华虹公司（688347.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">148.2</td>
+                <td style="padding:6px; border:1px solid #444;">177.8</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">19.97%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">177.72</td>
+                <td style="padding:6px; border:1px solid #444;">169.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-4.91%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">169.0</td>
+                <td style="padding:6px; border:1px solid #444;">179.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.72%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">183.0</td>
+                <td style="padding:6px; border:1px solid #444;">214.8</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">20.86%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">拓荆科技（688072.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">570.0</td>
+                <td style="padding:6px; border:1px solid #444;">634.88</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">11.38%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">648.01</td>
+                <td style="padding:6px; border:1px solid #444;">606.2</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-6.45%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">606.0</td>
+                <td style="padding:6px; border:1px solid #444;">616.98</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-4.79%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">602.0</td>
+                <td style="padding:6px; border:1px solid #444;">721.0</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">11.26%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">华天科技（002185.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">15.15</td>
+                <td style="padding:6px; border:1px solid #444;">15.88</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.82%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">16.0</td>
+                <td style="padding:6px; border:1px solid #444;">15.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-5.06%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">15.43</td>
+                <td style="padding:6px; border:1px solid #444;">15.43</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-3.56%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">16.0</td>
+                <td style="padding:6px; border:1px solid #444;">16.97</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">6.06%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">紫金矿业（601899.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">30.53</td>
+                <td style="padding:6px; border:1px solid #444;">30.39</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.46%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">30.91</td>
+                <td style="padding:6px; border:1px solid #444;">29.99</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-2.98%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">30.16</td>
+                <td style="padding:6px; border:1px solid #444;">30.96</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.16%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">3</td>
+                <td style="padding:6px; border:1px solid #444;">31.64</td>
+                <td style="padding:6px; border:1px solid #444;">31.35</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.42%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-21 第50名成交额：74.45 亿元</h3>
+                <p>本日累计为正 7 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">沪电股份（002463.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">105.58</td>
+                <td style="padding:6px; border:1px solid #444;">103.7</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-1.78%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">106.0</td>
+                <td style="padding:6px; border:1px solid #444;">114.07</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.61%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">121.02</td>
+                <td style="padding:6px; border:1px solid #444;">122.54</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">15.60%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">生益科技（600183.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">102.15</td>
+                <td style="padding:6px; border:1px solid #444;">98.19</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-3.88%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">102.1</td>
+                <td style="padding:6px; border:1px solid #444;">108.01</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">5.79%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">114.0</td>
+                <td style="padding:6px; border:1px solid #444;">116.52</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">14.12%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">香农芯创（300475.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">190.82</td>
+                <td style="padding:6px; border:1px solid #444;">177.75</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-6.85%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">181.21</td>
+                <td style="padding:6px; border:1px solid #444;">187.69</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.58%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">187.69</td>
+                <td style="padding:6px; border:1px solid #444;">204.56</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">12.89%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">兴森科技（002436.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">33.54</td>
+                <td style="padding:6px; border:1px solid #444;">33.29</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.75%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">35.57</td>
+                <td style="padding:6px; border:1px solid #444;">35.42</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-0.42%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">36.0</td>
+                <td style="padding:6px; border:1px solid #444;">38.12</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.17%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">紫光股份（000938.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">32.67</td>
+                <td style="padding:6px; border:1px solid #444;">29.25</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-10.47%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">29.62</td>
+                <td style="padding:6px; border:1px solid #444;">29.86</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.81%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">30.51</td>
+                <td style="padding:6px; border:1px solid #444;">31.04</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.79%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">TCL科技（000100.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">4.56</td>
+                <td style="padding:6px; border:1px solid #444;">4.37</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-4.17%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">4.25</td>
+                <td style="padding:6px; border:1px solid #444;">4.38</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.06%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">4.38</td>
+                <td style="padding:6px; border:1px solid #444;">4.44</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">4.47%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">中科曙光（603019.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">100.86</td>
+                <td style="padding:6px; border:1px solid #444;">93.25</td>
+                <td style="padding:6px; border:1px solid #444; color:#52c41a; font-weight:bold;">-7.55%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">93.26</td>
+                <td style="padding:6px; border:1px solid #444;">94.8</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.65%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">2</td>
+                <td style="padding:6px; border:1px solid #444;">95.3</td>
+                <td style="padding:6px; border:1px solid #444;">96.45</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">3.42%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
+        <section class="date-block">
+            <div class="date-header">
+                <h3>2026-05-22 第50名成交额：64.1 亿元</h3>
+                <p>本日累计为正 4 只（统计至 2026-05-25）</p>
+            </div>
+            <div class="card-area">
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">菲利华（300395.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">129.9</td>
+                <td style="padding:6px; border:1px solid #444;">140.15</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.89%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">141.81</td>
+                <td style="padding:6px; border:1px solid #444;">151.46</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">6.80%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">仕佳光子（688313.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">173.0</td>
+                <td style="padding:6px; border:1px solid #444;">174.72</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">0.99%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">177.0</td>
+                <td style="padding:6px; border:1px solid #444;">182.12</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">2.89%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">京东方A（000725.XSHE）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">4.7</td>
+                <td style="padding:6px; border:1px solid #444;">5.16</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">9.79%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">5.17</td>
+                <td style="padding:6px; border:1px solid #444;">5.27</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.93%</td>
+            </tr>
+            </table>
+        </div>
+    </div>
+    <div class="stock-card">
+        <div class="stock-card-inner">
+            <h3 class="stock-title">中国巨石（600176.XSHG）</h3>
+            <table class="stock-table">
+                <tr style="background:#333;">
+                    <th>第N日</th>
+                    <th>开盘价</th>
+                    <th>收盘价</th>
+                    <th>自T+1日涨跌幅</th>
+                </tr>
+                
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">0</td>
+                <td style="padding:6px; border:1px solid #444;">35.8</td>
+                <td style="padding:6px; border:1px solid #444;">38.35</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">7.12%</td>
+            </tr>
+            <tr>
+                <td style="padding:6px; border:1px solid #444;">1</td>
+                <td style="padding:6px; border:1px solid #444;">38.97</td>
+                <td style="padding:6px; border:1px solid #444;">39.42</td>
+                <td style="padding:6px; border:1px solid #444; color:#ff4d4f; font-weight:bold;">1.15%</td>
+            </tr>
+            </table>
+        </div>
+    </div></div>
+        </section>
 </body>
 </html>
