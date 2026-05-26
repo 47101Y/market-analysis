@@ -82,6 +82,7 @@
     <button onclick="changePage('heat.html')">新增股票行业热力分析</button>
     <button onclick="showImage()">新增股票行业热力图</button>
     <button onclick="changePage('timeline_v2.html')">新增股票行业轮动</button>
+    <button onclick="changePage('positive_cum.html')">最新日期累计增幅为正</button>
 </div>
 
 <div class="main-container" id="mainContainer">
@@ -123,6 +124,7 @@ function changePage(page) {
         document.getElementById("frame").onload = addHintToBarChart;
     } else {
         document.getElementById("futureChartArea").style.display = "none";
+        document.getElementById("frame").onload = null;
     }
 }
 

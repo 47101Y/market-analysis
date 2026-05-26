@@ -14,13 +14,17 @@ CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 # =========================
 
 new_df = pd.read_csv('每日成交额TOP50新增股票.csv')
+new_df['date'] = pd.to_datetime(new_df['date']).dt.strftime('%Y-%m-%d')
 weak_df = pd.read_csv('弱转强.csv')
 strong_df = pd.read_csv('强者恒强.csv')
 future_df = pd.read_csv('new_stock_future_10days.csv')
+future_df['trade_date'] = pd.to_datetime(future_df['trade_date']).dt.strftime('%Y-%m-%d')
+future_df['add_date'] = pd.to_datetime(future_df['add_date']).dt.strftime('%Y-%m-%d')
 
 
 #宽表格重现
 df = pd.read_csv("wide_stock_data.csv")
+df['add_date'] = pd.to_datetime(df['add_date']).dt.strftime('%Y-%m-%d')
 
 # 读取阈值文件
 threshold_df = pd.read_csv('top50_daily_threshold.csv')
@@ -134,6 +138,158 @@ for _, row in new_df.iterrows():
         'stock': row['stock'],
         'name': row['name']
     })
+
+
+# =========================
+# 第五部分：最新日期累计增幅为正（过去10个入选日）
+# =========================
+
+LOOKBACK_DAYS = 10
+
+latest_trade_date = future_df['trade_date'].max()
+selection_dates = sorted(new_df['date'].unique())
+last_n_selection_dates = selection_dates[-LOOKBACK_DAYS:]
+
+wide_index = df.set_index(['add_date', 'stock'])
+positive_cum_rows = []
+
+for add_date in last_n_selection_dates:
+    day_stocks = new_df[new_df['date'] == add_date]
+    for _, stock_row in day_stocks.iterrows():
+        stock = stock_row['stock']
+        key = (add_date, stock)
+        if key not in wide_index.index:
+            continue
+
+        wide_row = wide_index.loc[key]
+        if isinstance(wide_row, pd.DataFrame):
+            wide_row = wide_row.iloc[0]
+
+        t1_open = wide_row['open1']
+        if pd.isna(t1_open) or t1_open == 0:
+            continue
+
+        latest_slice = future_df[
+            (future_df['add_date'] == add_date)
+            & (future_df['stock'] == stock)
+            & (future_df['trade_date'] == latest_trade_date)
+        ]
+        if latest_slice.empty:
+            continue
+
+        day_seq = int(latest_slice.iloc[0]['day_seq'])
+        if day_seq < 1:
+            continue
+
+        latest_close = float(latest_slice.iloc[0]['close'])
+        cum_pct = (latest_close - t1_open) / t1_open
+        if cum_pct <= 0:
+            continue
+
+        positive_cum_rows.append({
+            'add_date': add_date,
+            'stock': stock,
+            'name': stock_row['name'],
+            'industry': stock_row['industry'],
+            't1_open': round(float(t1_open), 4),
+            'latest_close': round(latest_close, 4),
+            'cum_pct': cum_pct,
+            'hold_days': day_seq,
+        })
+
+positive_cum_rows.sort(key=lambda x: (x['add_date'], -x['cum_pct']))
+
+
+def render_positive_cum_html(rows, latest_date, lookback_dates):
+    date_summary = ', '.join(lookback_dates)
+    table_rows_html = []
+    for r in rows:
+        pct_str = f"{r['cum_pct'] * 100:.2f}%"
+        table_rows_html.append(f"""
+        <tr>
+            <td>{r['add_date']}</td>
+            <td>{r['stock']}</td>
+            <td>{r['name']}</td>
+            <td>{r['industry']}</td>
+            <td>{r['t1_open']}</td>
+            <td>{r['latest_close']}</td>
+            <td>T+{r['hold_days']}</td>
+            <td style="color:#ff4d4f;font-weight:bold;">{pct_str}</td>
+        </tr>""")
+
+    empty_hint = (
+        '<tr><td colspan="8" style="padding:24px;color:#999;">暂无符合条件的股票</td></tr>'
+        if not table_rows_html else ''
+    )
+
+    html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>最新日期累计增幅为正</title>
+    <style>
+        body {{
+            margin: 0;
+            padding: 20px;
+            background: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }}
+        h2 {{ margin: 0 0 8px; color: #ffd666; }}
+        .meta {{ color: #8b9cb3; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }}
+        .wrap {{ overflow-x: auto; }}
+        table {{
+            width: 100%;
+            min-width: 960px;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: center;
+        }}
+        th, td {{
+            padding: 10px 8px;
+            border: 1px solid #444;
+        }}
+        th {{ background: #333; }}
+        tr:nth-child(even) {{ background: #1a1a1a; }}
+    </style>
+</head>
+<body>
+    <h2>最新日期累计增幅为正</h2>
+    <div class="meta">
+        统计截至：<b>{latest_date}</b> &nbsp;|&nbsp;
+        入选日范围（最近 {len(lookback_dates)} 个交易日）：{date_summary}<br>
+        规则：上述每个入选日的新增 TOP50 个股，若从 <b>T+1 开盘价</b> 持有至 <b>{latest_date}</b> 收盘价，累计涨幅 &gt; 0，则列入本表。
+    </div>
+    <div class="wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>入选日期</th>
+                    <th>股票代码</th>
+                    <th>名称</th>
+                    <th>行业</th>
+                    <th>T+1开盘价</th>
+                    <th>最新收盘价</th>
+                    <th>持有至最新日</th>
+                    <th>自T+1累计涨幅</th>
+                </tr>
+            </thead>
+            <tbody>
+                {''.join(table_rows_html) if table_rows_html else empty_hint}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>"""
+    return html
+
+
+with open('positive_cum.html', 'w', encoding='utf-8') as f:
+    f.write(render_positive_cum_html(
+        positive_cum_rows,
+        latest_trade_date,
+        last_n_selection_dates,
+    ))
 
 
 # =========================
@@ -326,4 +482,5 @@ heat_bar.render("heat.html")
 timeline.render("timeline_v2.html")
 
 print("Dashboard 生成完成！")
+print(f"最新交易日: {latest_trade_date}，累计为正: {len(positive_cum_rows)} 只，页面: positive_cum.html")
             
