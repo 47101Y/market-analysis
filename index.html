@@ -245,6 +245,7 @@
     <button onclick="showImage()">新增股票行业热力图</button>
     <button onclick="changePage('timeline_v2.html')">新增股票行业轮动</button>
     <button onclick="showPositiveCum()">最新日期累计增幅为正</button>
+    <button onclick="changePage('money_watchlist.html')">板块资金3/5/10/20日成交额汇总</button>
 </div>
 
 <div class="main-container" id="mainContainer">
@@ -466,10 +467,8 @@ function changePage(page) {
 
     if (page === "bar.html") {
         document.getElementById("futureChartArea").style.display = "flex";
-        document.getElementById("frame").onload = addHintToBarChart;
     } else {
         document.getElementById("futureChartArea").style.display = "none";
-        document.getElementById("frame").onload = null;
     }
 }
 
@@ -479,61 +478,6 @@ function showImage() {
     document.getElementById("mainContainer").style.display = "none";
     document.getElementById("imageBox").style.display = "flex";
 }
-
-function addHintToBarChart() {
-    const iframe = document.getElementById("frame");
-    if (!iframe) return;
-
-    // 轮询等待图表加载完成
-    const timer = setInterval(() => {
-        try {
-            const chart = iframe.contentWindow.myChart;
-            if (chart) {
-                const hintText = " 点击新增/弱转强/强者恒强柱体，查看未来走势";
-                const verticalText = hintText.split('').join('\n');
-
-                chart.setOption({
-                    graphic: {
-                        elements: [{
-                            type: "text",
-                            right: "6.5%",
-                            top: "30%",
-                            silent: true,
-                            z: 100,
-                            style: {
-                                text: verticalText,
-                                fontSize: 16,
-                                fontWeight: "bold",
-                                fill: "#ffffff",
-                                opacity: 0.8,
-                                textAlign: "center",
-                                lineHeight: 20
-                            }
-                        }]
-                    }
-                });
-                clearInterval(timer); // 找到后停止轮询
-            }
-        } catch (e) {}
-    }, 100);
-}
-
-window.onload = function () {
-
-    var iframe = document.getElementById('frame');
-
-    // 默认首页直接添加提示
-    addHintToBarChart();
-
-    // 后续切换页面继续监听
-    iframe.addEventListener('load', function () {
-
-        if (iframe.src.includes('bar.html')) {
-            addHintToBarChart();
-        }
-
-    });
-};
 </script>
 
 </body>
