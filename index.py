@@ -1,4 +1,4 @@
-import pandas as pd
+﻿import pandas as pd
 from pyecharts.charts import Bar, Pie, Timeline, Page
 from pyecharts import options as opts
 from pyecharts.globals import ThemeType
@@ -9,18 +9,55 @@ import json
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 
 
+def build_wide_from_future(future_df):
+    """将 new_stock_future_10days.csv 长表转为 wide_stock_data 宽表（原 wide_stock_data.py 逻辑）。"""
+    df = future_df.copy()
+    df['day_seq'] = df['day_seq'].astype(int)
+    df = df.sort_values(['add_date', 'name', 'stock', 'industry', 'day_seq'])
+
+    def _col_suffix(day_seq):
+        return str(day_seq) if day_seq != 0 else ''
+
+    df['open_col'] = df['day_seq'].apply(lambda d: f'open{_col_suffix(d)}')
+    df['close_col'] = df['day_seq'].apply(lambda d: f'close{_col_suffix(d)}')
+    df['pct_col'] = df['day_seq'].apply(lambda d: f'today_pct{_col_suffix(d)}')
+
+    index_cols = ['add_date', 'name', 'stock', 'industry']
+    df_open = df.pivot_table(
+        index=index_cols, columns='open_col', values='open', aggfunc='first',
+    ).reset_index()
+    df_close = df.pivot_table(
+        index=index_cols, columns='close_col', values='close', aggfunc='first',
+    ).reset_index()
+    df_pct = df.pivot_table(
+        index=index_cols, columns='pct_col', values='today_pct', aggfunc='first',
+    ).reset_index()
+
+    df_merged = pd.merge(df_open, df_close, on=index_cols, how='left')
+    df_merged = pd.merge(df_merged, df_pct, on=index_cols, how='left')
+
+    dynamic_cols = []
+    for i in range(11):
+        suffix = str(i) if i != 0 else ''
+        dynamic_cols.extend([f'open{suffix}', f'close{suffix}', f'today_pct{suffix}'])
+    final_cols = index_cols + [c for c in dynamic_cols if c in df_merged.columns]
+    return df_merged[final_cols]
+
+
 # =========================
 # 读取数据
 # =========================
 
 new_df = pd.read_csv('每日成交额TOP50新增股票.csv')
-weak_df = pd.read_csv('弱转强.csv')
-strong_df = pd.read_csv('强者恒强.csv')
-future_df = pd.read_csv('new_stock_future_10days.csv')
+new_df['date'] = pd.to_datetime(new_df['date']).dt.strftime('%Y-%m-%d')
+weak_df = pd.read_csv('weak_to_strong.csv')
+strong_df = pd.read_csv('strong_stocks.csv')
+future_df = pd.read_csv('new_stock_future_10days.csv', encoding='utf-8-sig')
+future_df['trade_date'] = pd.to_datetime(future_df['trade_date']).dt.strftime('%Y-%m-%d')
+future_df['add_date'] = pd.to_datetime(future_df['add_date']).dt.strftime('%Y-%m-%d')
 
-
-#宽表格重现
-df = pd.read_csv("wide_stock_data.csv")
+# 由 new_stock_future_10days 直接生成宽表（无需再跑 wide_stock_data.py）
+df = build_wide_from_future(future_df)
 
 # 读取阈值文件
 threshold_df = pd.read_csv('top50_daily_threshold.csv')
@@ -137,6 +174,272 @@ for _, row in new_df.iterrows():
 
 
 # =========================
+# 第五部分：最新日期累计增幅为正（过去10个入选日）
+# =========================
+
+# 统计最近 N 个有数据的入选日（含再早 1 日，例如最新 5/25 时纳入 5/11）
+LOOKBACK_DAYS = 11
+MAX_DISPLAY_DAY = 10
+
+
+def _price_valid(val):
+    if val is None:
+        return False
+    try:
+        return not pd.isna(val)
+    except TypeError:
+        return True
+
+
+def trim_future_rows(future_list, max_day):
+    """保留第0日~第max_day日有数据的天数，遇空行停止。"""
+    rows = []
+    for r in future_list:
+        if r['day'] > max_day:
+            break
+        if not _price_valid(r.get('open')) or not _price_valid(r.get('close')):
+            break
+        rows.append(r)
+    return rows
+
+
+latest_trade_date = future_df['trade_date'].max()
+selection_dates = sorted(new_df['date'].unique())
+min_selection_date = selection_dates[0]
+wide_index = df.set_index(['add_date', 'stock'])
+
+# (add_date, stock) -> { trade_date: row }
+future_by_stock = defaultdict(dict)
+for _, row in future_df.iterrows():
+    future_by_stock[(row['add_date'], row['stock'])][row['trade_date']] = row
+
+# 可切换的截止交易日：从最早有入选数据日到最新交易日
+all_cutoff_dates = sorted(
+    d for d in future_df['trade_date'].unique() if min_selection_date <= d <= latest_trade_date
+)
+
+
+def compute_positive_snapshot(as_of_date):
+    """截至 as_of_date 收盘，过去 LOOKBACK_DAYS 个入选日中累计为正的股票。"""
+    lookback_dates = [d for d in selection_dates if d <= as_of_date][-LOOKBACK_DAYS:]
+    sections = []
+
+    for add_date in lookback_dates:
+        stocks = []
+        for _, stock_row in new_df[new_df['date'] == add_date].iterrows():
+            stock = stock_row['stock']
+            key = (add_date, stock)
+            if key not in wide_index.index:
+                continue
+
+            wide_row = wide_index.loc[key]
+            if isinstance(wide_row, pd.DataFrame):
+                wide_row = wide_row.iloc[0]
+
+            t1_open = wide_row['open1']
+            if pd.isna(t1_open) or t1_open == 0:
+                continue
+
+            asof_row = future_by_stock.get((add_date, stock), {}).get(as_of_date)
+            if asof_row is None:
+                continue
+
+            day_seq = int(asof_row['day_seq'])
+            if day_seq < 1:
+                continue
+
+            close = float(asof_row['close'])
+            cum_pct = (close - t1_open) / t1_open
+            if cum_pct <= 0:
+                continue
+
+            future_list = future_dict.get(add_date, {}).get(stock, [])
+            display_max = min(day_seq, MAX_DISPLAY_DAY)
+            stocks.append({
+                'name': stock_row['name'],
+                'stock': stock,
+                'cum_pct': float(cum_pct),
+                'future': [
+                    {
+                        'day': int(fd['day']),
+                        'open': float(fd['open']),
+                        'close': float(fd['close']),
+                        'cum_pct': float(fd['cum_pct']),
+                    }
+                    for fd in trim_future_rows(future_list, display_max)
+                ],
+            })
+
+        if stocks:
+            stocks.sort(key=lambda x: -x['cum_pct'])
+            sections.append({
+                'date': add_date,
+                'threshold': float(threshold_dict.get(add_date, 0) or 0),
+                'stocks': stocks,
+            })
+
+    return {
+        'as_of_date': as_of_date,
+        'lookback_dates': lookback_dates,
+        'sections': sections,
+        'total': sum(len(s['stocks']) for s in sections),
+    }
+
+
+print('正在生成各截止日快照…')
+positive_snapshots = {}
+for cutoff in all_cutoff_dates:
+    positive_snapshots[cutoff] = compute_positive_snapshot(cutoff)
+
+# 兼容旧逻辑：最新日快照
+latest_snapshot = positive_snapshots[latest_trade_date]
+positive_cum_rows = []
+for section in latest_snapshot['sections']:
+    for s in section['stocks']:
+        positive_cum_rows.append({
+            'add_date': section['date'],
+            'stock': s['stock'],
+            'name': s['name'],
+            'cum_pct': s['cum_pct'],
+            'future_days': s['future'],
+        })
+
+
+def build_positive_cum_payload(snapshots, cutoff_dates, latest_date):
+    return {
+        'latest_date': latest_date,
+        'lookback_days': LOOKBACK_DAYS,
+        'cutoff_dates': cutoff_dates,
+        'default_cutoff': latest_date,
+        'snapshots': snapshots,
+        # 兼容旧版前端字段
+        'lookback_dates': snapshots[latest_date]['lookback_dates'],
+        'sections': snapshots[latest_date]['sections'],
+    }
+
+
+def render_stock_card_html(name, stock, future_days, summary_pct=None):
+    rows_html = []
+    for row in future_days:
+        cls = 'pct-up' if row['cum_pct'] > 0 else 'pct-down'
+        pct_str = f"{row['cum_pct'] * 100:.2f}%"
+        rows_html.append(f"""
+            <tr>
+                <td>{row['day']}</td>
+                <td>{row['open']}</td>
+                <td>{row['close']}</td>
+                <td class="{cls}">{pct_str}</td>
+            </tr>""")
+
+    summary_html = ''
+    if summary_pct is not None:
+        scls = 'summary-up' if summary_pct > 0 else 'summary-down'
+        summary_html = (
+            f'<p class="stock-summary {scls}">'
+            f'截至最新日自T+1累计：{summary_pct * 100:.2f}%</p>'
+        )
+
+    return f"""
+    <div class="stock-card-wrap">
+        <div class="stock-card">
+            <h3 class="stock-title">{name}（{stock}）</h3>
+            {summary_html}
+            <table class="stock-table">
+                <thead><tr>
+                    <th>第N日</th><th>开盘价</th><th>收盘价</th><th>自T+1日涨跌幅</th>
+                </tr></thead>
+                <tbody>{''.join(rows_html)}</tbody>
+            </table>
+        </div>
+    </div>"""
+
+
+def render_positive_cum_html(rows, latest_date, lookback_dates, thresholds):
+    date_summary = ', '.join(lookback_dates)
+    grouped = defaultdict(list)
+    for r in rows:
+        grouped[r['add_date']].append(r)
+
+    sections_html = []
+    for add_date in lookback_dates:
+        stocks = grouped.get(add_date, [])
+        if not stocks:
+            continue
+        threshold = thresholds.get(add_date, 0)
+        cards = ''.join(
+            render_stock_card_html(s['name'], s['stock'], s['future_days'], s['cum_pct'])
+            for s in stocks
+        )
+        sections_html.append(f"""
+        <div class="date-block">
+            <div class="date-header">
+                <h3>{add_date} 第50名成交额：{threshold} 亿元</h3>
+                <p>本日累计为正 {len(stocks)} 只（统计至 {latest_date}）</p>
+            </div>
+            <div class="card-row">{cards}</div>
+        </div>""")
+
+    html = f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>最新日期累计增幅为正</title>
+    <style>
+        body {{ margin:0; padding:20px; background:#111; color:#fff; font-family:Arial,sans-serif; }}
+        h2 {{ color:#ffd666; margin:0 0 10px; }}
+        .meta {{ color:#8b9cb3; font-size:14px; line-height:1.7; margin-bottom:20px; }}
+        .date-header {{ width:100%; padding:15px; background:#1f1f1f; border-radius:10px; margin-bottom:16px; }}
+        .date-header h3 {{ margin:0 0 6px; font-size:17px; }}
+        .date-header p {{ margin:0; color:#8b9cb3; font-size:13px; }}
+        .card-row {{ display:flex; flex-wrap:wrap; justify-content:center; gap:20px; margin-bottom:30px; }}
+        .stock-card-wrap {{ width:460px; flex-shrink:0; }}
+        .stock-card {{ background:#1f1f1f; border-radius:10px; padding:15px; }}
+        .stock-title {{ text-align:center; color:#ffd666; margin:0 0 8px; font-size:16px; }}
+        .stock-summary {{ text-align:center; margin:0 0 12px; font-size:13px; }}
+        .summary-up {{ color:#ff4d4f; }} .summary-down {{ color:#52c41a; }}
+        .stock-table {{ width:100%; border-collapse:collapse; text-align:center; font-size:13px; }}
+        .stock-table th, .stock-table td {{ padding:6px; border:1px solid #444; }}
+        .stock-table th {{ background:#333; }}
+        .pct-up {{ color:#ff4d4f; font-weight:bold; }}
+        .pct-down {{ color:#52c41a; font-weight:bold; }}
+        .empty-hint {{ text-align:center; color:#999; padding:40px; }}
+    </style>
+</head>
+<body>
+    <h2>最新日期累计增幅为正</h2>
+    <div class="meta">
+        统计截至：<b>{latest_date}</b><br>
+        入选日范围（最近 {len(lookback_dates)} 个交易日）：{date_summary}<br>
+        规则：从 <b>T+1 开盘价</b> 持有至 <b>{latest_date}</b> 收盘价累计涨幅 &gt; 0。<br>
+        每只股票展示 <b>T 日至 T+10 日</b> 走势（无数据的天数自动隐藏）。
+    </div>
+    {''.join(sections_html) if sections_html else '<p class="empty-hint">暂无符合条件的股票</p>'}
+</body>
+</html>"""
+    return html
+
+
+positive_cum_payload = build_positive_cum_payload(
+    positive_snapshots,
+    all_cutoff_dates,
+    latest_trade_date,
+)
+
+with open('positive_cum_data.js', 'w', encoding='utf-8') as f:
+    f.write('window.positiveCumData = ')
+    json.dump(positive_cum_payload, f, ensure_ascii=False)
+    f.write(';\n')
+
+with open('positive_cum.html', 'w', encoding='utf-8') as f:
+    f.write(render_positive_cum_html(
+        positive_cum_rows,
+        latest_trade_date,
+        latest_snapshot['lookback_dates'],
+        threshold_dict,
+    ))
+
+
+# =========================
 # 第一部分：每日统计柱状图
 # =========================
 
@@ -156,70 +459,35 @@ result = result.fillna(0)
 bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
-        height="7810px",
+        height="780px",
         theme=ThemeType.DARK
     ))
     .add_xaxis(result['date'].tolist())
-
     .add_yaxis('新增', result['新增'].tolist())
     .add_yaxis('弱转强', result['弱转强'].tolist())
     .add_yaxis('强者恒强', result['强者恒强'].tolist())
-
     .set_global_opts(
-
         title_opts=opts.TitleOpts(
             title='每日成交额TOP50统计',
-            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,' \
-            '然后分为两类:T日增跌幅<0,T+1日>0以及T日增跌幅>0,T+1日>0的股票'
+            subtitle='本模块统计每日进入两市成交额TOP50的新增个股数量,并筛选出T+1日、T+2日仍留存的股票,\n然后分为两类:T日增跌幅<0,T+1日>0(弱转强) 以及T日增跌幅>0,T+1日>0的股票(强者恒强)',
+            pos_top='1%',
+            item_gap=6,
+            subtitle_textstyle_opts=opts.TextStyleOpts(
+                font_size=11,
+                line_height=16,
+                color="#aaaaaa",
+                font_weight="normal",
+            ),
         ),
-
         tooltip_opts=opts.TooltipOpts(trigger='axis'),
-
-        xaxis_opts=opts.AxisOpts(
-            axislabel_opts=opts.LabelOpts(rotate=45)
-        ),
-
+        xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
+        yaxis_opts=opts.AxisOpts(name='数量（只）'),
         datazoom_opts=[opts.DataZoomOpts()],
-
-        legend_opts=opts.LegendOpts(pos_top='10%'),
-
-        # =========================
-        # 图内提示词
-        # =========================
-
-        graphic_opts=[
-
-            opts.GraphicGroup(
-
-                graphic_item=opts.GraphicItem(
-                    right="3%",
-                    top="28%",
-                    z=100
-                ),
-
-                children=[
-
-                    opts.GraphicText(
-
-                        graphic_item=opts.GraphicItem(
-                            left=0,
-                            top=0
-                        ),
-
-                        graphic_textstyle_opts=opts.GraphicTextStyleOpts(
-
-                            text='点\n击\n新\n增\n柱\n体\n\n查\n看\n未\n来\n走\n势\n详\n情',
-
-                            font='bold 18px Microsoft YaHei',
-
-                            graphic_basicstyle_opts=opts.GraphicBasicStyleOpts(
-                                fill='rgba(255,255,255,0.75)'
-                            )
-                        )
-                    )
-                ]
-            )
-        ]
+        legend_opts=opts.LegendOpts(
+            pos_top='13%',
+            pos_left='center',
+            item_gap=16,
+        ),
     )
 )
 
@@ -229,6 +497,17 @@ bar = (
 bar.add_js_funcs("""
 
 window.myChart = chart_""" + bar.chart_id + """;
+
+// 固定绘图区，避免副标题/图例挤压柱状图
+chart_""" + bar.chart_id + """.setOption({
+    grid: {
+        top: '20%',
+        left: '3%',
+        right: '10%',
+        bottom: '14%',
+        containLabel: true
+    }
+});
 
 var futureData = """ + json.dumps(future_dict, ensure_ascii=False) + """;
 var newData = """ + json.dumps(dict(new_detail), ensure_ascii=False) + """;
@@ -250,19 +529,12 @@ chart_""" + bar.chart_id + """.on('click', function(params) {
     var area = parent.document.getElementById('futureChartArea');
     area.innerHTML = "";
 
-    // ======================
-    // 显示第50名成交额
-    // ======================
     var threshold = thresholdData[date] || 0;
-    var infoDiv = parent.document.createElement('div');
-    infoDiv.style.width = '100%';
-    infoDiv.style.padding = '15px';
-    infoDiv.style.color = '#fff';
-    infoDiv.style.background = '#1f1f1f';
-    infoDiv.style.borderRadius = '10px';
-    infoDiv.style.marginBottom = '20px';
-    infoDiv.innerHTML = '<h3>' + date + ' 第50名成交额：' + threshold + ' 亿元</h3>';
-    area.appendChild(infoDiv);
+    area.insertAdjacentHTML('beforeend', parent.buildDateHeaderHtml(date, threshold, ''));
+
+    var cardRow = parent.document.createElement('div');
+    cardRow.className = 'card-row';
+    area.appendChild(cardRow);
 
     stocks.forEach(function(item) {
 
@@ -272,36 +544,11 @@ chart_""" + bar.chart_id + """.on('click', function(params) {
             return;
         }
 
-        var div = parent.document.createElement('div');
-        div.style.marginBottom = '30px';
-        area.appendChild(div);
-
-        var html = '';
-        html += '<div style="background:#1f1f1f; padding:15px; border-radius:10px; color:white;">';
-        html += '<h3 style="text-align:center; margin-bottom:15px; color:#ffd666;">';
-        html += item.name + '（' + item.stock + '）';
-        html += '</h3>';
-        html += '<table style="width:100%; border-collapse:collapse; text-align:center; font-size:13px;">';
-        html += '<tr style="background:#333;">';
-        html += '<th style="padding:8px; border:1px solid #555;">第N日</th>';
-        html += '<th style="padding:8px; border:1px solid #555;">开盘价</th>';
-        html += '<th style="padding:8px; border:1px solid #555;">收盘价</th>';
-        html += '<th style="padding:8px; border:1px solid #555;">自T+1日涨跌幅</th>';
-        html += '</tr>';
-
-        future.forEach(function(row) {
-            html += '<tr>';
-            html += '<td style="padding:6px; border:1px solid #444;">' + row.day + '</td>';
-            html += '<td style="padding:6px; border:1px solid #444;">' + row.open + '</td>';
-            html += '<td style="padding:6px; border:1px solid #444;">' + row.close + '</td>';
-            var color = row.cum_pct > 0 ? '#ff4d4f' : '#52c41a';
-            var pct = (row.cum_pct * 100).toFixed(2) + '%';
-            html += '<td style="padding:6px; border:1px solid #444; color:' + color + '; font-weight:bold;">' + pct + '</td>';
-            html += '</tr>';
-        });
-
-        html += '</table></div>';
-        div.innerHTML = html;
+        var trimmed = parent.trimFutureRows(future, parent.MAX_DISPLAY_DAY || 10);
+        var wrap = parent.document.createElement('div');
+        wrap.className = 'stock-card-wrap';
+        wrap.innerHTML = parent.buildStockCardHtml(item.name, item.stock, trimmed);
+        cardRow.appendChild(wrap);
 
     });
 
@@ -373,4 +620,23 @@ heat_bar.render("heat.html")
 timeline.render("timeline_v2.html")
 
 print("Dashboard 生成完成！")
+print(f"最新交易日: {latest_trade_date}，累计为正: {latest_snapshot['total']} 只")
+print(f"  -> 日期存档: {all_cutoff_dates[0]} ~ {all_cutoff_dates[-1]} 共 {len(all_cutoff_dates)} 个交易日")
+print(f"  -> 入选日窗口: 最近 {LOOKBACK_DAYS} 天")
+print("  -> positive_cum_data.js / positive_cum.html 已更新")
+
+# 更新 index.html 中 JS 缓存参数
+cache_ver = f"{latest_trade_date}-d{LOOKBACK_DAYS}-snap{len(all_cutoff_dates)}"
+with open("index.html", "r", encoding="utf-8") as f:
+    index_html = f.read()
+new_src = f"positive_cum_data.js?v={cache_ver}"
+if "positive_cum_data.js?v=" in index_html:
+    i = index_html.find("positive_cum_data.js?v=")
+    j = index_html.find('"', i)
+    index_html = index_html[:i] + new_src + index_html[j:]
+else:
+    index_html = index_html.replace("positive_cum_data.js", new_src, 1)
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(index_html)
+print(f"  -> index.html 已刷新脚本缓存参数: ?v={cache_ver}")
             

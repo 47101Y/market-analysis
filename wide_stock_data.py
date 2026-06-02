@@ -1,3 +1,4 @@
+"""可选独立脚本：宽表转换已并入 index.py 的 build_wide_from_future()。"""
 import pandas as pd
 
 # 1. 读取原始数据
