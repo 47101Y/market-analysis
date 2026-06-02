@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>板块资金 3/5/10/20 日成交额汇总</title>
+  <title>新增板块3/5/10/20日成交额汇总</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -91,7 +91,7 @@
 <body>
 <div class="page">
   <div class="section-intro">
-    <h2 id="pageTitle">板块资金 3/5/10/20 日成交额汇总</h2>
+    <h2 id="pageTitle">新增板块3/5/10/20日成交额汇总</h2>
     <p id="pageSub" class="hint" style="margin:0;color:#8b9cb3;"></p>
   </div>
 
@@ -99,7 +99,8 @@
     <label>信号日 T <select id="dateSelect"></select></label>
     <label>搜索 <input id="searchInput" placeholder="代码 / 名称" style="min-width:140px"/></label>
     <div class="filter-btns" id="winBtns">
-      <button type="button" class="active" data-win="3">3日汇总</button>
+      <button type="button" class="active" data-win="1">1日汇总</button>
+      <button type="button" data-win="3">3日汇总</button>
       <button type="button" data-win="5">5日汇总</button>
       <button type="button" data-win="10">10日汇总</button>
       <button type="button" data-win="20">20日汇总</button>
@@ -123,7 +124,7 @@
 
   <div class="card">
     <h2>汇总表 · 点击行查看逐日明细</h2>
-    <p class="hint">单位：亿元。sum_Nd = 从 T 日起连续 N 个交易日成交额之和（含 T 日）</p>
+    <p class="hint">单位：亿元。1日=T日成交额；sum_Nd = 从 T 日起连续 N 个交易日成交额之和（含 T 日）</p>
     <div class="table-wrap">
       <table>
         <thead>
@@ -156,11 +157,11 @@ const byDate = DATA.byDate || {};
 const dates = DATA.dates || [];
 
 document.getElementById("pageTitle").textContent =
-  meta.title || "板块资金 3/5/10/20 日成交额汇总";
+  meta.title || "新增板块3/5/10/20日成交额汇总";
 document.getElementById("pageSub").textContent =
   "信号日 " + (meta.signal_days || dates.length) + " 个 · 新进条目 "
   + (meta.total_entries || 0) + " 条 · 汇总窗口 "
-  + (meta.roll_windows || [3, 5, 10, 20]).join("/") + " 交易日 · 数据 "
+  + (meta.roll_windows || [1, 3, 5, 10, 20]).join("/") + " 交易日 · 数据 "
   + (meta.backtest_start || "") + " ~ " + (meta.last_signal_date || "");
 
 const dateSelect = document.getElementById("dateSelect");
@@ -171,7 +172,7 @@ const detailCard = document.getElementById("detailCard");
 const detailTitle = document.getElementById("detailTitle");
 const detailContent = document.getElementById("detailContent");
 
-let activeWin = 3;
+let activeWin = 1;
 let selectedCode = null;
 let barChart = null;
 let lineChart = null;
@@ -181,7 +182,10 @@ function fmt(v) {
   return Number(v).toFixed(2);
 }
 
-function yiKey(win) { return "sum_" + win + "d_yi"; }
+function yiKey(win) {
+  if (win === 1) return "money_t_yi";
+  return "sum_" + win + "d_yi";
+}
 
 function currentStocks() {
   const d = dateSelect.value;
