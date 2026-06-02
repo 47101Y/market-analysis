@@ -5,6 +5,7 @@ from pyecharts.globals import ThemeType
 from collections import defaultdict
 from pyecharts.globals import CurrentConfig
 import json
+import re
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 
@@ -52,6 +53,8 @@ new_df = pd.read_csv('每日成交额TOP50新增股票.csv')
 new_df['date'] = pd.to_datetime(new_df['date']).dt.strftime('%Y-%m-%d')
 weak_df = pd.read_csv('weak_to_strong.csv')
 strong_df = pd.read_csv('strong_stocks.csv')
+weak_df['date'] = pd.to_datetime(weak_df['日期']).dt.strftime('%Y-%m-%d')
+strong_df['date'] = pd.to_datetime(strong_df['日期']).dt.strftime('%Y-%m-%d')
 future_df = pd.read_csv('new_stock_future_10days.csv', encoding='utf-8-sig')
 future_df['trade_date'] = pd.to_datetime(future_df['trade_date']).dt.strftime('%Y-%m-%d')
 future_df['add_date'] = pd.to_datetime(future_df['add_date']).dt.strftime('%Y-%m-%d')
@@ -170,6 +173,21 @@ for _, row in new_df.iterrows():
     new_detail[date].append({
         'stock': row['stock'],
         'name': row['name']
+    })
+
+
+weak_detail = defaultdict(list)
+for _, row in weak_df.iterrows():
+    weak_detail[row['date']].append({
+        'stock': row['股票代码'],
+        'name': row['名称'],
+    })
+
+strong_detail = defaultdict(list)
+for _, row in strong_df.iterrows():
+    strong_detail[row['date']].append({
+        'stock': row['股票代码'],
+        'name': row['名称'],
     })
 
 
@@ -425,11 +443,6 @@ positive_cum_payload = build_positive_cum_payload(
     latest_trade_date,
 )
 
-with open('positive_cum_data.js', 'w', encoding='utf-8') as f:
-    f.write('window.positiveCumData = ')
-    json.dump(positive_cum_payload, f, ensure_ascii=False)
-    f.write(';\n')
-
 with open('positive_cum.html', 'w', encoding='utf-8') as f:
     f.write(render_positive_cum_html(
         positive_cum_rows,
@@ -444,10 +457,8 @@ with open('positive_cum.html', 'w', encoding='utf-8') as f:
 # =========================
 
 new_count = new_df.groupby('date').size().reset_index(name='新增')
-weak_count = weak_df.groupby('日期').size().reset_index(name='弱转强')
-weak_count.columns = ['date', '弱转强']
-strong_count = strong_df.groupby('日期').size().reset_index(name='强者恒强')
-strong_count.columns = ['date', '强者恒强']
+weak_count = weak_df.groupby('date').size().reset_index(name='弱转强')
+strong_count = strong_df.groupby('date').size().reset_index(name='强者恒强')
 
 all_dates = sorted(list(set(new_count['date'].tolist() + weak_count['date'].tolist() + strong_count['date'].tolist())))
 result = pd.DataFrame({'date': all_dates})
@@ -511,26 +522,42 @@ chart_""" + bar.chart_id + """.setOption({
 
 var futureData = """ + json.dumps(future_dict, ensure_ascii=False) + """;
 var newData = """ + json.dumps(dict(new_detail), ensure_ascii=False) + """;
+var weakData = """ + json.dumps(dict(weak_detail), ensure_ascii=False) + """;
+var strongData = """ + json.dumps(dict(strong_detail), ensure_ascii=False) + """;
 var thresholdData = """ + threshold_json + """;
+var seriesStockMap = {
+    '新增': newData,
+    '弱转强': weakData,
+    '强者恒强': strongData
+};
+var seriesHint = {
+    '新增': '当日全部新进 Top50',
+    '弱转强': 'T日跌、T+1涨，且 T+1/T+2 仍留 Top50',
+    '强者恒强': 'T日涨、T+1涨，且 T+1/T+2 仍留 Top50'
+};
 
 chart_""" + bar.chart_id + """.on('click', function(params) {
 
-    if(params.seriesName !== '新增') {
+    var seriesName = params.seriesName;
+    var dataMap = seriesStockMap[seriesName];
+    if(!dataMap) {
         return;
     }
 
     var date = params.name;
-    var stocks = newData[date];
+    var stocks = dataMap[date];
 
-    if(!stocks) {
+    if(!stocks || !stocks.length) {
         return;
     }
 
     var area = parent.document.getElementById('futureChartArea');
     area.innerHTML = "";
+    area.style.display = 'flex';
 
     var threshold = thresholdData[date] || 0;
-    area.insertAdjacentHTML('beforeend', parent.buildDateHeaderHtml(date, threshold, ''));
+    var extra = seriesHint[seriesName] || '';
+    area.insertAdjacentHTML('beforeend', parent.buildDateHeaderHtml(date, threshold, extra));
 
     var cardRow = parent.document.createElement('div');
     cardRow.className = 'card-row';
@@ -538,7 +565,7 @@ chart_""" + bar.chart_id + """.on('click', function(params) {
 
     stocks.forEach(function(item) {
 
-        var future = futureData[String(date)][String(item.stock)];
+        var future = futureData[String(date)] && futureData[String(date)][String(item.stock)];
 
         if(!future) {
             return;
@@ -623,20 +650,44 @@ print("Dashboard 生成完成！")
 print(f"最新交易日: {latest_trade_date}，累计为正: {latest_snapshot['total']} 只")
 print(f"  -> 日期存档: {all_cutoff_dates[0]} ~ {all_cutoff_dates[-1]} 共 {len(all_cutoff_dates)} 个交易日")
 print(f"  -> 入选日窗口: 最近 {LOOKBACK_DAYS} 天")
-print("  -> positive_cum_data.js / positive_cum.html 已更新")
+print("  -> positive_cum 数据已写入 index.html（内嵌脚本）")
+print("  -> positive_cum.html 已更新（独立页，可选）")
 
-# 更新 index.html 中 JS 缓存参数
+# 将累计为正快照内嵌进 index.html，不再单独生成 positive_cum_data.js
 cache_ver = f"{latest_trade_date}-d{LOOKBACK_DAYS}-snap{len(all_cutoff_dates)}"
+positive_cum_script = (
+    '<script id="positive-cum-data">\n'
+    'window.positiveCumData = '
+    + json.dumps(positive_cum_payload, ensure_ascii=False)
+    + ';\n</script>'
+)
 with open("index.html", "r", encoding="utf-8") as f:
     index_html = f.read()
-new_src = f"positive_cum_data.js?v={cache_ver}"
-if "positive_cum_data.js?v=" in index_html:
-    i = index_html.find("positive_cum_data.js?v=")
-    j = index_html.find('"', i)
-    index_html = index_html[:i] + new_src + index_html[j:]
+
+if "<!--POSITIVE_CUM_DATA_START-->" in index_html:
+    index_html = re.sub(
+        r"<!--POSITIVE_CUM_DATA_START-->.*?<!--POSITIVE_CUM_DATA_END-->",
+        "<!--POSITIVE_CUM_DATA_START-->\n"
+        + positive_cum_script
+        + "\n<!--POSITIVE_CUM_DATA_END-->",
+        index_html,
+        count=1,
+        flags=re.DOTALL,
+    )
 else:
-    index_html = index_html.replace("positive_cum_data.js", new_src, 1)
+    # 兼容旧版：移除 external js，插入内嵌块
+    index_html = re.sub(
+        r'<script src="positive_cum_data\.js[^"]*"></script>\s*',
+        "",
+        index_html,
+    )
+    index_html = index_html.replace(
+        "<script>\nvar MAX_DISPLAY_DAY",
+        positive_cum_script + "\n<script>\nvar MAX_DISPLAY_DAY",
+        1,
+    )
+
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(index_html)
-print(f"  -> index.html 已刷新脚本缓存参数: ?v={cache_ver}")
+print(f"  -> index.html 已更新（数据版本 {cache_ver}）")
             
