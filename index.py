@@ -696,23 +696,28 @@ chart_""" + bar.chart_id + """.on('click', function(params) {
 
 
 # =========================
-# 第二部分：行业热力图
+# 第二部分：行业热力图（申万二级；类别多，汇总图只展示 Top N）
 # =========================
+
+INDUSTRY_LEVEL_LABEL = '申万二级行业'
+HEAT_TOP_N = 30
 
 industry_count = new_df['industry'].value_counts().reset_index()
 industry_count.columns = ['industry', 'count']
+industry_count = industry_count.head(HEAT_TOP_N)
+heat_height = max(760, min(1200, 420 + len(industry_count) * 18))
 
 heat_bar = (
     Bar(init_opts=opts.InitOpts(
         width="100%",
-        height="760px",
+        height=f"{heat_height}px",
         theme=ThemeType.DARK
     ))
     .add_xaxis(industry_count['industry'].tolist())
     .add_yaxis('行业出现次数', industry_count['count'].tolist(), category_gap='40%')
     .set_global_opts(
-        title_opts=opts.TitleOpts(title='行业热力分布'),
-        xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
+        title_opts=opts.TitleOpts(title=f'{INDUSTRY_LEVEL_LABEL}热力分布（Top {HEAT_TOP_N}）'),
+        xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45, font_size=10)),
         visualmap_opts=opts.VisualMapOpts(max_=int(industry_count['count'].max()),
                                         pos_right="5%", 
                                         pos_top="middle")
@@ -721,7 +726,7 @@ heat_bar = (
 
 
 # =========================
-# 第三部分：行业轮动图
+# 第三部分：行业轮动图（按日统计二级行业）
 # =========================
 
 rotation_group = new_df.groupby(['date', 'industry']).size().reset_index(name='count')
@@ -737,8 +742,8 @@ for d in sorted(rotation_group['date'].unique()):
         .add_xaxis(temp['industry'].tolist())
         .add_yaxis('数量', temp['count'].tolist())
         .set_global_opts(
-            title_opts=opts.TitleOpts(title=f'{d} 行业轮动'),
-            xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45)),
+            title_opts=opts.TitleOpts(title=f'{d} {INDUSTRY_LEVEL_LABEL}轮动'),
+            xaxis_opts=opts.AxisOpts(axislabel_opts=opts.LabelOpts(rotate=45, font_size=10)),
             visualmap_opts=opts.VisualMapOpts(max_=int(temp['count'].max()),
                                             pos_right="5%",   # 离右边 5%，往左挪，靠近主图
                                             pos_top="middle"  # 垂直居中，和主图对齐
