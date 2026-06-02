@@ -120,6 +120,25 @@
         font-size:16px;
     }
 
+    .stock-metrics{
+        display:flex;
+        flex-wrap:wrap;
+        justify-content:center;
+        gap:8px 14px;
+        margin:0 0 12px;
+        padding:8px 10px;
+        background:#2a2a2a;
+        border-radius:8px;
+        font-size:12px;
+        color:#b8c5d6;
+        line-height:1.6;
+    }
+
+    .stock-metrics span{ white-space:nowrap; }
+    .metric-up{ color:#ff4d4f; font-weight:600; }
+    .metric-down{ color:#52c41a; font-weight:600; }
+    .metric-neutral{ color:#d9d9d9; font-weight:600; }
+
     .stock-summary{
         text-align:center;
         margin:0 0 12px;
@@ -296,9 +315,32 @@ function trimFutureRows(futureList, maxDay) {
     return rows;
 }
 
-function buildStockCardHtml(name, stock, futureRows, summaryPct, asOfDate) {
+function formatMetric(val, suffix) {
+    if (val === null || val === undefined || val === '') return '--';
+    return val + suffix;
+}
+
+function metricTone(val) {
+    if (val === null || val === undefined || val === '') return 'metric-neutral';
+    return Number(val) >= 0 ? 'metric-up' : 'metric-down';
+}
+
+function buildStockMetricsHtml(metrics) {
+    if (!metrics) return '';
+    var mainCls = metricTone(metrics.net_amount_main);
+    var northCls = metricTone(metrics.net_inflow);
+    return '<div class="stock-metrics">'
+        + '<span>主力净流入：<b class="' + mainCls + '">' + formatMetric(metrics.net_amount_main, ' 万') + '</b></span>'
+        + '<span>主力占比：<b class="metric-neutral">' + formatMetric(metrics.net_pct_main, '%') + '</b></span>'
+        + '<span>北向净流入：<b class="' + northCls + '">' + formatMetric(metrics.net_inflow, ' 万') + '</b></span>'
+        + '<span>换手率：<b class="metric-neutral">' + formatMetric(metrics.turnover_ratio, '%') + '</b></span>'
+        + '</div>';
+}
+
+function buildStockCardHtml(name, stock, futureRows, summaryPct, asOfDate, metrics) {
     var html = '<div class="stock-card">';
     html += '<h3 class="stock-title">' + name + '（' + stock + '）</h3>';
+    html += buildStockMetricsHtml(metrics);
     if (summaryPct !== undefined && summaryPct !== null) {
         var scls = summaryPct > 0 ? 'summary-up' : 'summary-down';
         var label = asOfDate ? ('截至 ' + asOfDate + ' 自T+1累计：') : '截至当日自T+1累计：';

@@ -248,29 +248,60 @@ for _, row in df.iterrows():
 # 新增股票详情字典
 # =========================
 
+METRIC_COL_MAP = {
+    'net_amount_main': ['net_amount_main', '主力净流入（万）'],
+    'net_pct_main': ['net_pct_main', '主力占比（%）'],
+    'net_inflow': ['net_inflow', '北向净流入（万）'],
+    'turnover_ratio': ['turnover_ratio', '换手率（%）'],
+}
+
+
+def stock_metrics_payload(row):
+    payload = {}
+    for key, cols in METRIC_COL_MAP.items():
+        val = None
+        for col in cols:
+            if col not in row.index:
+                continue
+            try:
+                if pd.notna(row[col]):
+                    val = round(float(row[col]), 2)
+                    break
+            except (TypeError, ValueError):
+                continue
+        payload[key] = val
+    return payload
+
+
 new_detail = defaultdict(list)
 
 for _, row in new_df.iterrows():
     date = row['date']
-    new_detail[date].append({
+    item = {
         'stock': row['stock'],
-        'name': row['name']
-    })
+        'name': row['name'],
+    }
+    item.update(stock_metrics_payload(row))
+    new_detail[date].append(item)
 
 
 weak_detail = defaultdict(list)
 for _, row in weak_df.iterrows():
-    weak_detail[row['date']].append({
+    item = {
         'stock': row['股票代码'],
         'name': row['名称'],
-    })
+    }
+    item.update(stock_metrics_payload(row))
+    weak_detail[row['date']].append(item)
 
 strong_detail = defaultdict(list)
 for _, row in strong_df.iterrows():
-    strong_detail[row['date']].append({
+    item = {
         'stock': row['股票代码'],
         'name': row['名称'],
-    })
+    }
+    item.update(stock_metrics_payload(row))
+    strong_detail[row['date']].append(item)
 
 
 # =========================
@@ -682,7 +713,7 @@ chart_""" + bar.chart_id + """.on('click', function(params) {
         var trimmed = parent.trimFutureRows(future, parent.MAX_DISPLAY_DAY || 10);
         var wrap = parent.document.createElement('div');
         wrap.className = 'stock-card-wrap';
-        wrap.innerHTML = parent.buildStockCardHtml(item.name, item.stock, trimmed);
+        wrap.innerHTML = parent.buildStockCardHtml(item.name, item.stock, trimmed, undefined, undefined, item);
         cardRow.appendChild(wrap);
 
     });
