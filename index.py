@@ -107,6 +107,12 @@ _MONEY_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 960px) { .grid2 { grid-template-columns: 1fr; } }
     .chart-box { height: 280px; position: relative; }
+    .chart-empty {
+      position: absolute; inset: 0; display: none;
+      align-items: center; justify-content: center;
+      color: #8b9cb3; font-size: 15px; text-align: center;
+      padding: 20px; background: rgba(17, 17, 17, 0.85);
+    }
     .table-wrap {
       max-height: 55vh; overflow: auto;
       border-radius: 8px; border: 1px solid #333;
@@ -162,7 +168,10 @@ _MONEY_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
     <div class="card">
       <h2>当日汇总对比（亿元）</h2>
       <p class="hint">所选信号日各新进股的 N 日成交额合计</p>
-      <div class="chart-box"><canvas id="barChart"></canvas></div>
+      <div class="chart-box">
+        <canvas id="barChart"></canvas>
+        <div class="chart-empty" id="barChartEmpty"></div>
+      </div>
     </div>
     <div class="card">
       <h2>当日合计走势（亿元）</h2>
@@ -227,8 +236,33 @@ let barChart = null;
 let lineChart = null;
 
 function fmt(v) {
-  if (v == null || v === "" || Number.isNaN(v)) return "—";
+  if (v == null || v === "" || Number.isNaN(v)) return "暂无";
   return Number(v).toFixed(2);
+}
+
+function observedDays(stock) {
+  const last = meta.last_signal_date || "";
+  const daily = stock.daily || [];
+  if (!daily.length) return stock.track_days || 0;
+  if (!last) return daily.length;
+  let n = 0;
+  for (let i = 0; i < daily.length; i++) {
+    if (daily[i].date > last) break;
+    n++;
+  }
+  return n;
+}
+
+function canComputeWin(stock, win) {
+  if (win === 1) return stock.money_t_yi != null && stock.money_t_yi !== "";
+  const key = yiKey(win);
+  return observedDays(stock) >= win && stock[key] != null;
+}
+
+function fmtWin(stock, win) {
+  if (!canComputeWin(stock, win)) return "暂无";
+  if (win === 1) return fmt(stock.money_t_yi);
+  return fmt(stock[yiKey(win)]);
 }
 
 function yiKey(win) {
@@ -263,14 +297,24 @@ function renderStats(stocks) {
   const cnt = stocks.length;
   const avgT = cnt ? stocks.reduce(function (a, s) { return a + (s.money_t_yi || 0); }, 0) / cnt : 0;
   const key = yiKey(activeWin);
-  const valid = stocks.filter(function (s) { return s[key] != null; });
-  const avgSum = valid.length ? valid.reduce(function (a, s) { return a + s[key]; }, 0) / valid.length : 0;
-  const totalSum = valid.reduce(function (a, s) { return a + s[key]; }, 0);
+  const valid = stocks.filter(function (s) { return canComputeWin(s, activeWin); });
+  let avgSumText, totalSumText;
+  if (activeWin > 1 && valid.length === 0) {
+    avgSumText = "暂无";
+    totalSumText = "暂无";
+  } else {
+    const avgSum = valid.length
+      ? valid.reduce(function (a, s) { return a + s[key]; }, 0) / valid.length
+      : 0;
+    const totalSum = valid.reduce(function (a, s) { return a + s[key]; }, 0);
+    avgSumText = fmt(avgSum) + " 亿";
+    totalSumText = fmt(totalSum) + " 亿";
+  }
   const rows = [
     ["当日新进", cnt + " 只"],
     ["T日成交额均值", fmt(avgT) + " 亿"],
-    [activeWin + "日汇总均值", fmt(avgSum) + " 亿"],
-    [activeWin + "日汇总合计", fmt(totalSum) + " 亿"],
+    [activeWin + "日汇总均值", avgSumText],
+    [activeWin + "日汇总合计", totalSumText],
     ["可算" + activeWin + "日", valid.length + " 只"],
   ];
   statsEl.innerHTML = rows.map(function (pair) {
@@ -285,11 +329,11 @@ function renderSummary(stocks) {
       + '<td class="left">' + (s.name || "—") + '</td>'
       + '<td class="left">' + s.code + '</td>'
       + '<td>' + fmt(s.money_t_yi) + '</td>'
-      + '<td>' + fmt(s.sum_3d_yi) + '</td>'
-      + '<td>' + fmt(s.sum_5d_yi) + '</td>'
-      + '<td>' + fmt(s.sum_10d_yi) + '</td>'
-      + '<td>' + fmt(s.sum_20d_yi) + '</td>'
-      + '<td>' + (s.track_days || 0) + ' 日</td></tr>';
+      + '<td>' + fmtWin(s, 3) + '</td>'
+      + '<td>' + fmtWin(s, 5) + '</td>'
+      + '<td>' + fmtWin(s, 10) + '</td>'
+      + '<td>' + fmtWin(s, 20) + '</td>'
+      + '<td>' + observedDays(s) + ' 日</td></tr>';
   }).join("") || '<tr><td colspan="8" class="empty">无数据</td></tr>';
 
   summaryBody.querySelectorAll("tr[data-code]").forEach(function (tr) {
@@ -322,9 +366,11 @@ function renderDetail(stock) {
 }
 
 function aggregateDailySum(stocks) {
+  const last = meta.last_signal_date || "";
   const map = {};
   stocks.forEach(function (s) {
     (s.daily || []).forEach(function (d) {
+      if (last && d.date > last) return;
       map[d.day] = (map[d.day] || 0) + (d.money_yi || 0);
     });
   });
@@ -346,28 +392,38 @@ function chartScales() {
 
 function renderCharts(stocks) {
   const key = yiKey(activeWin);
-  const labels = stocks.map(function (s) { return (s.name || s.code).slice(0, 8); });
-  const vals = stocks.map(function (s) { return s[key] != null ? s[key] : 0; });
+  const valid = stocks.filter(function (s) { return canComputeWin(s, activeWin); });
+  const barEmpty = document.getElementById("barChartEmpty");
+  const chartStocks = activeWin === 1 ? stocks : valid;
 
-  if (barChart) barChart.destroy();
-  barChart = new Chart(document.getElementById("barChart"), {
-    type: "bar",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: activeWin + "日汇总(亿)",
-        data: vals,
-        backgroundColor: "rgba(255, 214, 102, 0.55)",
-        borderColor: "#ffd666",
-        borderWidth: 1,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: chartScales(),
-    },
-  });
+  if (activeWin > 1 && valid.length === 0) {
+    if (barChart) { barChart.destroy(); barChart = null; }
+    barEmpty.style.display = "flex";
+    barEmpty.textContent = "当前日期还没有 " + activeWin + " 日汇总";
+  } else {
+    barEmpty.style.display = "none";
+    const labels = chartStocks.map(function (s) { return (s.name || s.code).slice(0, 8); });
+    const vals = chartStocks.map(function (s) { return s[key]; });
+    if (barChart) barChart.destroy();
+    barChart = new Chart(document.getElementById("barChart"), {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: activeWin + "日汇总(亿)",
+          data: vals,
+          backgroundColor: "rgba(255, 214, 102, 0.55)",
+          borderColor: "#ffd666",
+          borderWidth: 1,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: chartScales(),
+      },
+    });
+  }
 
   const agg = aggregateDailySum(stocks);
   if (lineChart) lineChart.destroy();
@@ -439,12 +495,56 @@ def _opt_money_col(r, col):
     return float(v)
 
 
+def _fmt_yi_from_money(money):
+    if money is None:
+        return None
+    return round(float(money) / 1e8, 2)
+
+
+def _sanitize_money_watchlist_payload(payload):
+    """修正不足 N 交易日时的汇总字段，避免未来占位日导致 sum_Nd 虚高。"""
+    meta = payload.setdefault('meta', {})
+    last = meta.get('last_signal_date') or ''
+    windows = meta.get('roll_windows') or [1, 3, 5, 10, 20]
+
+    def _fix_stock(stock):
+        daily = stock.get('daily') or []
+        if last and daily:
+            daily = [d for d in daily if str(d.get('date', '')) <= last]
+            stock['daily'] = daily
+        track = len(daily) if daily else int(stock.get('track_days') or 0)
+        stock['track_days'] = track
+        monies = [float(d.get('money') or 0) for d in daily]
+        for w in windows:
+            if w == 1:
+                continue
+            if track < w:
+                stock[f'sum_{w}d'] = None
+                stock[f'sum_{w}d_yi'] = None
+            else:
+                s = sum(monies[:w])
+                stock[f'sum_{w}d'] = round(s, 2)
+                stock[f'sum_{w}d_yi'] = _fmt_yi_from_money(s)
+        return {k: v for k, v in stock.items() if k != 'daily'}
+
+    by_date = payload.get('byDate') or {}
+    entries = []
+    for block in by_date.values():
+        fixed = []
+        for stock in block.get('stocks') or []:
+            entries.append(_fix_stock(stock))
+            fixed.append(stock)
+        block['stocks'] = fixed
+    payload['entries'] = entries
+    return payload
+
+
 def load_money_watchlist_payload():
     json_path = _find_money_data_file('top50_money_watchlist.json')
     if json_path:
         payload = json.loads(json_path.read_text(encoding='utf-8'))
         payload.setdefault('meta', {}).setdefault('title', '新增板块3/5/10/20日成交额汇总')
-        return payload
+        return _sanitize_money_watchlist_payload(payload)
 
     csv_path = _find_money_data_file('top50_money_watchlist.csv')
     if not csv_path:
@@ -478,7 +578,7 @@ def load_money_watchlist_payload():
             entries.append({k: v for k, v in item.items() if k != 'daily'})
         by_date[str(d)] = {'entry_date': str(d), 'count': len(stocks), 'stocks': stocks}
 
-    return {
+    payload = {
         'meta': {
             'title': '新增板块3/5/10/20日成交额汇总',
             'total_entries': len(entries),
@@ -489,6 +589,7 @@ def load_money_watchlist_payload():
         'byDate': by_date,
         'entries': entries,
     }
+    return _sanitize_money_watchlist_payload(payload)
 
 
 def build_money_watchlist_page():
