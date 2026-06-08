@@ -8,18 +8,18 @@
     
 </head>
 <body >
-    <div id="74fc0d0f2219408d90739e80c42b2b39" class="chart-container" style="width:100%; height:780px; "></div>
+    <div id="d60182d1c796486b86cb040fe1079e80" class="chart-container" style="width:100%; height:780px; "></div>
     <script>
-        var chart_74fc0d0f2219408d90739e80c42b2b39 = echarts.init(
-            document.getElementById('74fc0d0f2219408d90739e80c42b2b39'), 'dark', {renderer: 'canvas', locale: 'ZH'});
+        var chart_d60182d1c796486b86cb040fe1079e80 = echarts.init(
+            document.getElementById('d60182d1c796486b86cb040fe1079e80'), 'dark', {renderer: 'canvas', locale: 'ZH'});
             
 
-window.myChart = chart_74fc0d0f2219408d90739e80c42b2b39;
+window.myChart = chart_d60182d1c796486b86cb040fe1079e80;
 
 // 固定绘图区 + 右侧提示（与图表同帧渲染，避免 iframe 轮询延迟）
 (function() {
     var hintText = ' 点击新增/弱转强/强者恒强柱体，查看未来走势';
-    chart_74fc0d0f2219408d90739e80c42b2b39.setOption({
+    chart_d60182d1c796486b86cb040fe1079e80.setOption({
         grid: {
             top: '20%',
             left: '3%',
@@ -62,7 +62,7 @@ var seriesHint = {
     '强者恒强': 'T日涨、T+1涨，且 T+1/T+2 仍留 Top50'
 };
 
-chart_74fc0d0f2219408d90739e80c42b2b39.on('click', function(params) {
+chart_d60182d1c796486b86cb040fe1079e80.on('click', function(params) {
 
     var seriesNames = ['新增', '弱转强', '强者恒强'];
     var seriesName = params.seriesName;
@@ -76,7 +76,7 @@ chart_74fc0d0f2219408d90739e80c42b2b39.on('click', function(params) {
 
     var date = params.name;
     if (!date && params.dataIndex != null) {
-        date = chart_74fc0d0f2219408d90739e80c42b2b39.getOption().xAxis[0].data[params.dataIndex];
+        date = chart_d60182d1c796486b86cb040fe1079e80.getOption().xAxis[0].data[params.dataIndex];
     }
     var stocks = dataMap[date];
 
@@ -118,7 +118,7 @@ chart_74fc0d0f2219408d90739e80c42b2b39.on('click', function(params) {
 
 });
 
-        var option_74fc0d0f2219408d90739e80c42b2b39 = {
+        var option_d60182d1c796486b86cb040fe1079e80 = {
     "animation": true,
     "animationThreshold": 2000,
     "animationDuration": 1000,
@@ -580,9 +580,9 @@ chart_74fc0d0f2219408d90739e80c42b2b39.on('click', function(params) {
         }
     ]
 };
-        chart_74fc0d0f2219408d90739e80c42b2b39.setOption(option_74fc0d0f2219408d90739e80c42b2b39);
+        chart_d60182d1c796486b86cb040fe1079e80.setOption(option_d60182d1c796486b86cb040fe1079e80);
             window.addEventListener('resize', function(){
-                chart_74fc0d0f2219408d90739e80c42b2b39.resize();
+                chart_d60182d1c796486b86cb040fe1079e80.resize();
             })
     </script>
 </body>
