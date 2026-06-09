@@ -166,8 +166,8 @@ _MONEY_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
 
   <div class="grid2">
     <div class="card">
-      <h2>当日汇总对比（亿元）</h2>
-      <p class="hint">所选信号日各新进股的 N 日成交额合计</p>
+      <h2 id="barChartTitle">T日汇总对比（亿元）</h2>
+      <p class="hint" id="barChartHint">所选信号日各新进股的 T 日成交额</p>
       <div class="chart-box">
         <canvas id="barChart"></canvas>
         <div class="chart-empty" id="barChartEmpty"></div>
@@ -395,6 +395,11 @@ function renderCharts(stocks) {
   const valid = stocks.filter(function (s) { return canComputeWin(s, activeWin); });
   const barEmpty = document.getElementById("barChartEmpty");
   const chartStocks = activeWin === 1 ? stocks : valid;
+  const winLabel = activeWin === 1 ? "T日" : (activeWin + "日");
+  document.getElementById("barChartTitle").textContent = winLabel + "汇总对比（亿元）";
+  document.getElementById("barChartHint").textContent = activeWin === 1
+    ? "所选信号日各新进股的 T 日成交额"
+    : ("所选信号日各新进股的 " + activeWin + " 日成交额合计");
 
   if (activeWin > 1 && valid.length === 0) {
     if (barChart) { barChart.destroy(); barChart = null; }
@@ -485,7 +490,7 @@ _MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>新增板块3/5/10/20日日均成交额汇总</title>
+  <title>新增板块前3/5/10/20日累计和日均成交额汇总</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; }
@@ -573,13 +578,17 @@ _MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
       font-size: 12px; padding: 2px 8px; border-radius: 4px;
       background: rgba(255, 214, 102, 0.15); color: #ffd666;
     }
+    .detail-body { padding: 14px; }
+    .detail-table-title {
+      margin: 16px 0 8px; font-size: 14px; color: #ffd666; font-weight: 600;
+    }
     .empty { text-align: center; padding: 24px; color: #8b9cb3; }
   </style>
 </head>
 <body>
 <div class="page">
   <div class="section-intro">
-    <h2 id="pageTitle">新增板块3/5/10/20日日均成交额汇总</h2>
+    <h2 id="pageTitle">新增板块前3/5/10/20日累计和日均成交额汇总</h2>
     <p id="pageSub" class="hint" style="margin:0;color:#8b9cb3;"></p>
   </div>
 
@@ -587,11 +596,11 @@ _MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
     <label>信号日 T <select id="dateSelect"></select></label>
     <label>搜索 <input id="searchInput" placeholder="代码 / 名称" style="min-width:140px"/></label>
     <div class="filter-btns" id="winBtns">
-      <button type="button" class="active" data-win="1">1日日均</button>
-      <button type="button" data-win="3">3日日均</button>
-      <button type="button" data-win="5">5日日均</button>
-      <button type="button" data-win="10">10日日均</button>
-      <button type="button" data-win="20">20日日均</button>
+      <button type="button" class="active" data-win="1">1日</button>
+      <button type="button" data-win="3">3日</button>
+      <button type="button" data-win="5">5日</button>
+      <button type="button" data-win="10">10日</button>
+      <button type="button" data-win="20">20日</button>
     </div>
   </div>
 
@@ -599,22 +608,25 @@ _MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
 
   <div class="grid2">
     <div class="card">
-      <h2>10日日均走势（归一化%）</h2>
-      <p class="hint">横轴为信号日前 10 个交易日；每只股票一条线，纵轴为所选窗口日均成交额相对 T 日的百分比（T 日 = 100%）</p>
+      <h2 id="barChartTitle">1日走势（归一化%）</h2>
+      <p class="hint" id="barChartHint">横轴为信号日前 10 个交易日；每只股票一条线，纵轴为 1 日日均成交额相对开头日的百分比（开头日 = 100%）</p>
       <div class="chart-box">
         <canvas id="barChart"></canvas>
         <div class="chart-empty" id="barChartEmpty"></div>
       </div>
     </div>
     <div class="card">
-      <h2>当日回溯合计走势（亿元）</h2>
-      <p class="hint">所选日全部新进股向前回溯逐日成交额之和（末条为T日）</p>
-      <div class="chart-box"><canvas id="lineChart"></canvas></div>
+      <h2 id="sumChartTitle">T日成交额（亿元）</h2>
+      <p class="hint" id="sumChartHint">所选信号日各新进股的 T 日成交额</p>
+      <div class="chart-box">
+        <canvas id="sumChart"></canvas>
+        <div class="chart-empty" id="sumChartEmpty"></div>
+      </div>
     </div>
   </div>
 
   <div class="card">
-    <h2>日均表 · 点击行查看回溯明细</h2>
+    <h2>日均表 · 点击行查看日均走势与回溯明细</h2>
     <p class="hint">单位：亿元。1日=T日成交额；avg_Nd = 从 T 往前 N 个交易日成交额均值（含 T 日）</p>
     <div class="table-wrap">
       <table>
@@ -636,7 +648,7 @@ _MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
   </div>
 
   <div class="card" id="detailCard" style="display:none">
-    <h2 id="detailTitle">逐日明细</h2>
+    <h2 id="detailTitle">个股日均走势</h2>
     <div id="detailContent"></div>
   </div>
 </div>
@@ -646,9 +658,13 @@ const DATA = __PAYLOAD__;
 const meta = DATA.meta || {};
 const byDate = DATA.byDate || {};
 const dates = DATA.dates || [];
+const DETAIL_WINDOWS = [1, 3, 5, 10, 20];
+const WIN_LINE_COLORS = {
+  1: "#ffd666", 3: "#52c41a", 5: "#1890ff", 10: "#eb2f96", 20: "#fa8c16"
+};
 
 document.getElementById("pageTitle").textContent =
-  meta.title || "新增板块3/5/10/20日日均成交额汇总";
+  meta.title || "新增板块前3/5/10/20日累计和日均成交额汇总";
 document.getElementById("pageSub").textContent =
   "信号日 " + (meta.signal_days || dates.length) + " 个 · 新进条目 "
   + (meta.total_entries || 0) + " 条 · 日均窗口 "
@@ -668,10 +684,13 @@ const detailContent = document.getElementById("detailContent");
 let activeWin = 1;
 let selectedCode = null;
 let barChart = null;
-let lineChart = null;
+let sumChart = null;
+let detailChart = null;
 const STOCK_COLORS = [
   "#ffd666", "#52c41a", "#1890ff", "#eb2f96", "#fa8c16",
-  "#722ed1", "#13c2c2", "#a0d911", "#f5222d", "#2f54eb"
+  "#722ed1", "#13c2c2", "#f5222d", "#2f54eb", "#a0d911",
+  "#ff85c0", "#36cfc9", "#ffc53d", "#597ef7", "#ff7a45",
+  "#b37feb", "#5cdbd3", "#bae637", "#69c0ff", "#d4380d"
 ];
 
 function fmt(v) {
@@ -709,6 +728,49 @@ function historyValue(row, win) {
 function stockHistory(stock) {
   if (stock.history && stock.history.length) return stock.history;
   return [];
+}
+
+function buildHistoryFromDaily(stock) {
+  const daily = stock.daily || [];
+  const historyDays = meta.history_days || 10;
+  if (!daily.length) return [];
+  const n = daily.length;
+  const start = Math.max(0, n - historyDays);
+  const history = [];
+  for (let i = start; i < n; i++) {
+    const prefix = daily.slice(0, i + 1).map(function (d) { return d.money_yi || 0; });
+    const row = { date: daily[i].date };
+    DETAIL_WINDOWS.forEach(function (w) {
+      if (prefix.length >= w) {
+        const seg = prefix.slice(-w);
+        row["avg_" + w + "d_yi"] = seg.reduce(function (a, b) { return a + b; }, 0) / w;
+      } else {
+        row["avg_" + w + "d_yi"] = null;
+      }
+    });
+    history.push(row);
+  }
+  return history;
+}
+
+function getStockHistory(stock) {
+  const hist = stockHistory(stock);
+  return hist.length ? hist : buildHistoryFromDaily(stock);
+}
+
+function backwardSumYi(stock, win) {
+  const daily = stock.daily || [];
+  if (win === 1) {
+    if (stock.money_t_yi != null && stock.money_t_yi !== "") return Number(stock.money_t_yi);
+    if (daily.length) return daily[daily.length - 1].money_yi;
+    return null;
+  }
+  if (daily.length < win) return null;
+  return daily.slice(-win).reduce(function (a, d) { return a + (d.money_yi || 0); }, 0);
+}
+
+function canComputeSumWin(stock, win) {
+  return backwardSumYi(stock, win) != null;
 }
 
 function currentStocks() {
@@ -754,8 +816,8 @@ function renderStats(stocks) {
   const rows = [
     ["当日新进", cnt + " 只"],
     ["T日成交额均值", fmt(avgT) + " 亿"],
-    [activeWin + "日日均均值", avgSumText],
-    [activeWin + "日日均合计", totalSumText],
+    [activeWin + "日均值", avgSumText],
+    [activeWin + "日合计", totalSumText],
     ["可算" + activeWin + "日", valid.length + " 只"],
   ];
   statsEl.innerHTML = rows.map(function (pair) {
@@ -786,39 +848,96 @@ function renderSummary(stocks) {
   });
 }
 
+function dayOffsetLabel(index, total) {
+  const offset = total - 1 - index;
+  return offset === 0 ? "T日" : ("T-" + offset + "日");
+}
+
 function renderDetail(stock) {
-  if (!stock || !stock.daily || !stock.daily.length) {
+  if (!stock) {
     detailCard.style.display = "none";
+    if (detailChart) { detailChart.destroy(); detailChart = null; }
+    return;
+  }
+  const hist = getStockHistory(stock);
+  const hasDaily = stock.daily && stock.daily.length;
+  if (!hist.length && !hasDaily) {
+    detailCard.style.display = "none";
+    if (detailChart) { detailChart.destroy(); detailChart = null; }
     return;
   }
   detailCard.style.display = "block";
-  detailTitle.textContent = "【" + stock.name + "】" + stock.code + " · 回溯逐日成交额（亿元）";
-  const rows = stock.daily.map(function (d) {
-    return '<tr><td class="left">第 ' + d.day + ' 日</td><td class="left">' + d.date
-      + '</td><td>' + fmt(d.money_yi) + '</td></tr>';
-  }).join("");
+  detailTitle.textContent =
+    "【" + stock.name + "】" + stock.code + " · 日均走势 & 回溯明细";
   detailContent.innerHTML =
     '<div class="detail-card"><div class="detail-head">'
     + '<span class="detail-name">' + stock.name + '</span>'
     + '<span class="detail-code">' + stock.code + '</span>'
     + '<span class="badge">T=' + stock.entry_date + '</span></div>'
-    + '<table><thead><tr><th class="left">序</th><th class="left">日期</th><th>成交额(亿)</th></tr></thead>'
-    + '<tbody>' + rows + '</tbody></table></div>';
-}
+    + '<div class="detail-body">'
+    + '<p class="hint">5 条线分别为 1/3/5/10/20 日日均，纵轴为相对开头日的百分比（开头日 = 100%）</p>'
+    + '<div class="chart-box"><canvas id="detailAvgChart"></canvas></div>'
+    + (hasDaily
+      ? ('<div class="detail-table-title">回溯逐日成交额（亿元）</div>'
+        + '<table><thead><tr><th class="left">序</th><th class="left">日期</th><th>成交额(亿)</th></tr></thead>'
+        + '<tbody>'
+        + stock.daily.map(function (d, i) {
+          return '<tr><td class="left">' + dayOffsetLabel(i, stock.daily.length)
+            + '</td><td class="left">' + d.date
+            + '</td><td>' + fmt(d.money_yi) + '</td></tr>';
+        }).join("")
+        + '</tbody></table>')
+      : '<p class="hint">暂无逐日成交额明细</p>')
+    + '</div></div>';
 
-function aggregateDailySum(stocks) {
-  const map = {};
-  stocks.forEach(function (s) {
-    (s.daily || []).forEach(function (d) {
-      map[d.day] = (map[d.day] || 0) + (d.money_yi || 0);
-    });
+  if (detailChart) { detailChart.destroy(); detailChart = null; }
+  if (!hist.length) return;
+
+  const labels = hist.map(function (h) { return h.date; });
+  const datasets = DETAIL_WINDOWS.map(function (win) {
+    const firstRow = hist[0];
+    const base = historyValue(firstRow, win);
+    const color = WIN_LINE_COLORS[win] || "#aaa";
+    return {
+      label: win + "日日均",
+      data: hist.map(function (row) {
+        const v = historyValue(row, win);
+        if (v == null || base == null || base === 0) return null;
+        return (v / base) * 100;
+      }),
+      borderColor: color,
+      backgroundColor: color + "33",
+      tension: 0.25,
+      spanGaps: false,
+      pointRadius: 2,
+      pointHoverRadius: 4,
+    };
   });
-  const keys = Object.keys(map).sort(function (a, b) { return a - b; });
-  const last = keys.length ? +keys[keys.length - 1] : 0;
-  return keys.map(function (k) {
-    const day = +k;
-    const label = day === last ? "T日" : ("T-" + (last - day));
-    return { day: day, sum: map[k], label: label };
+
+  detailChart = new Chart(document.getElementById("detailAvgChart"), {
+    type: "line",
+    data: { labels: labels, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          labels: { color: "#ccc", boxWidth: 12, font: { size: 11 } },
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              var pct = ctx.parsed.y;
+              if (pct == null) return ctx.dataset.label + ": 暂无";
+              return ctx.dataset.label + ": " + pct.toFixed(1) + "%";
+            },
+          },
+        },
+      },
+      scales: chartScalesPct(),
+    },
   });
 }
 
@@ -842,13 +961,18 @@ function chartScalesPct() {
         callback: function (v) { return v + "%"; },
       },
       grid: { color: "#2a2a2a" },
-      title: { display: true, text: "归一化%（T日=100%）", color: "#8b9cb3" },
+      title: { display: true, text: "归一化%（开头日=100%）", color: "#8b9cb3" },
     },
   };
 }
 
 function renderCharts(stocks) {
   const barEmpty = document.getElementById("barChartEmpty");
+  const histDays = meta.history_days || 10;
+  document.getElementById("barChartTitle").textContent = activeWin + "日走势（归一化%）";
+  document.getElementById("barChartHint").textContent =
+    "横轴为信号日前 " + histDays + " 个交易日；每只股票一条线，纵轴为 "
+    + activeWin + " 日日均成交额相对开头日的百分比（开头日 = 100%）";
   const withHist = stocks.filter(function (s) { return stockHistory(s).length; });
   const sample = withHist[0];
 
@@ -860,8 +984,8 @@ function renderCharts(stocks) {
     const labels = sample.history.map(function (h) { return h.date; });
     const datasets = withHist.map(function (s, idx) {
       const hist = stockHistory(s);
-      const lastRow = hist[hist.length - 1];
-      const base = historyValue(lastRow, activeWin);
+      const firstRow = hist[0];
+      const base = historyValue(firstRow, activeWin);
       const color = STOCK_COLORS[idx % STOCK_COLORS.length];
       return {
         label: (s.name || s.code).slice(0, 10),
@@ -916,27 +1040,50 @@ function renderCharts(stocks) {
     }
   }
 
-  const agg = aggregateDailySum(stocks);
-  if (lineChart) lineChart.destroy();
-  lineChart = new Chart(document.getElementById("lineChart"), {
-    type: "line",
-    data: {
-      labels: agg.map(function (x) { return x.label || ("第" + x.day + "日"); }),
-      datasets: [{
-        label: "当日全部新进回溯合计(亿)",
-        data: agg.map(function (x) { return x.sum; }),
-        borderColor: "#52c41a",
-        backgroundColor: "rgba(82, 196, 26, 0.12)",
-        fill: true,
-        tension: 0.25,
-      }],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: chartScalesYuan(),
-    },
-  });
+  const sumEmpty = document.getElementById("sumChartEmpty");
+  const sumWinLabel = activeWin === 1 ? "T日" : (activeWin + "日");
+  document.getElementById("sumChartTitle").textContent =
+    activeWin === 1 ? "T日成交额（亿元）" : (activeWin + "日成交额汇总（亿元）");
+  document.getElementById("sumChartHint").textContent = activeWin === 1
+    ? "所选信号日各新进股的 T 日成交额"
+    : ("所选信号日各新进股向前 " + activeWin + " 日成交额合计（含 T 日）");
+  const sumValid = stocks.filter(function (s) { return canComputeSumWin(s, activeWin); });
+  const sumChartStocks = activeWin === 1
+    ? stocks.filter(function (s) { return canComputeSumWin(s, 1); })
+    : sumValid;
+
+  if (activeWin > 1 && sumValid.length === 0) {
+    if (sumChart) { sumChart.destroy(); sumChart = null; }
+    sumEmpty.style.display = "flex";
+    sumEmpty.textContent = "当前日期还没有 " + activeWin + " 日汇总";
+  } else if (!sumChartStocks.length) {
+    if (sumChart) { sumChart.destroy(); sumChart = null; }
+    sumEmpty.style.display = "flex";
+    sumEmpty.textContent = "暂无成交额数据";
+  } else {
+    sumEmpty.style.display = "none";
+    const sumLabels = sumChartStocks.map(function (s) { return (s.name || s.code).slice(0, 8); });
+    const sumVals = sumChartStocks.map(function (s) { return backwardSumYi(s, activeWin); });
+    if (sumChart) sumChart.destroy();
+    sumChart = new Chart(document.getElementById("sumChart"), {
+      type: "bar",
+      data: {
+        labels: sumLabels,
+        datasets: [{
+          label: sumWinLabel + "成交额(亿)",
+          data: sumVals,
+          backgroundColor: "rgba(255, 214, 102, 0.55)",
+          borderColor: "#ffd666",
+          borderWidth: 1,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: chartScalesYuan(),
+      },
+    });
+  }
 }
 
 function render() {
@@ -1094,7 +1241,7 @@ def load_money_avg_watchlist_payload():
             '找不到 top50_money_avg_watchlist.json，请先在聚宽运行 top50_daily_pipeline_jq.py 并下载到 python_files'
         )
     payload = json.loads(json_path.read_text(encoding='utf-8'))
-    payload.setdefault('meta', {}).setdefault('title', '新增板块3/5/10/20日日均成交额汇总')
+    payload.setdefault('meta', {})['title'] = '新增板块前3/5/10/20日累计和日均成交额汇总'
     return _sanitize_money_avg_watchlist_payload(payload)
 
 
@@ -1908,7 +2055,11 @@ else:
 index_html = _ensure_index_tab_button(
     index_html,
     'money_avg_watchlist.html',
+    '新增板块前3/5/10/20日累计和日均成交额汇总',
+)
+index_html = index_html.replace(
     '新增板块3/5/10/20日日均成交额汇总',
+    '新增板块前3/5/10/20日累计和日均成交额汇总',
 )
 
 with open("index.html", "w", encoding="utf-8") as f:
