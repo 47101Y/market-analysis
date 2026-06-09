@@ -599,8 +599,8 @@ _MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
 
   <div class="grid2">
     <div class="card">
-      <h2>当日日均对比（亿元）</h2>
-      <p class="hint">所选信号日各新进股的 N 日日均成交额（向前含T）</p>
+      <h2>10日日均走势（归一化%）</h2>
+      <p class="hint">横轴为信号日前 10 个交易日；每只股票一条线，纵轴为所选窗口日均成交额相对 T 日的百分比（T 日 = 100%）</p>
       <div class="chart-box">
         <canvas id="barChart"></canvas>
         <div class="chart-empty" id="barChartEmpty"></div>
@@ -652,7 +652,9 @@ document.getElementById("pageTitle").textContent =
 document.getElementById("pageSub").textContent =
   "信号日 " + (meta.signal_days || dates.length) + " 个 · 新进条目 "
   + (meta.total_entries || 0) + " 条 · 日均窗口 "
-  + (meta.roll_windows || [1, 3, 5, 10, 20]).join("/") + " 交易日 · 数据 "
+  + (meta.roll_windows || [1, 3, 5, 10, 20]).join("/") + " 交易日 · 回溯 "
+  + (meta.money_lookback_days || meta.max_track_days || 30) + " 日 · 图表 "
+  + (meta.history_days || 10) + " 日 · 数据 "
   + (meta.backtest_start || "") + " ~ " + (meta.last_signal_date || "");
 
 const dateSelect = document.getElementById("dateSelect");
@@ -667,6 +669,10 @@ let activeWin = 1;
 let selectedCode = null;
 let barChart = null;
 let lineChart = null;
+const STOCK_COLORS = [
+  "#ffd666", "#52c41a", "#1890ff", "#eb2f96", "#fa8c16",
+  "#722ed1", "#13c2c2", "#a0d911", "#f5222d", "#2f54eb"
+];
 
 function fmt(v) {
   if (v == null || v === "" || Number.isNaN(v)) return "暂无";
@@ -690,8 +696,19 @@ function fmtWin(stock, win) {
 }
 
 function yiKey(win) {
-  if (win === 1) return "money_t_yi";
+  if (win === 1) return "avg_1d_yi";
   return "avg_" + win + "d_yi";
+}
+
+function historyValue(row, win) {
+  if (!row) return null;
+  if (win === 1) return row.avg_1d_yi != null ? row.avg_1d_yi : row.money_yi;
+  return row["avg_" + win + "d_yi"];
+}
+
+function stockHistory(stock) {
+  if (stock.history && stock.history.length) return stock.history;
+  return [];
 }
 
 function currentStocks() {
@@ -805,7 +822,7 @@ function aggregateDailySum(stocks) {
   });
 }
 
-function chartScales() {
+function chartScalesYuan() {
   return {
     x: { ticks: { color: "#8b9cb3", maxRotation: 45 }, grid: { color: "#2a2a2a" } },
     y: {
@@ -816,39 +833,87 @@ function chartScales() {
   };
 }
 
-function renderCharts(stocks) {
-  const key = yiKey(activeWin);
-  const valid = stocks.filter(function (s) { return canComputeWin(s, activeWin); });
-  const barEmpty = document.getElementById("barChartEmpty");
-  const chartStocks = activeWin === 1 ? stocks : valid;
+function chartScalesPct() {
+  return {
+    x: { ticks: { color: "#8b9cb3", maxRotation: 45 }, grid: { color: "#2a2a2a" } },
+    y: {
+      ticks: {
+        color: "#8b9cb3",
+        callback: function (v) { return v + "%"; },
+      },
+      grid: { color: "#2a2a2a" },
+      title: { display: true, text: "归一化%（T日=100%）", color: "#8b9cb3" },
+    },
+  };
+}
 
-  if (activeWin > 1 && valid.length === 0) {
+function renderCharts(stocks) {
+  const barEmpty = document.getElementById("barChartEmpty");
+  const withHist = stocks.filter(function (s) { return stockHistory(s).length; });
+  const sample = withHist[0];
+
+  if (!sample) {
     if (barChart) { barChart.destroy(); barChart = null; }
     barEmpty.style.display = "flex";
-    barEmpty.textContent = "当前日期还没有 " + activeWin + " 日汇总";
+    barEmpty.textContent = "暂无 10 日历史数据，请重新导出 top50_money_avg_watchlist.json";
   } else {
-    barEmpty.style.display = "none";
-    const labels = chartStocks.map(function (s) { return (s.name || s.code).slice(0, 8); });
-    const vals = chartStocks.map(function (s) { return s[key]; });
-    if (barChart) barChart.destroy();
-    barChart = new Chart(document.getElementById("barChart"), {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: activeWin + "日日均(亿)",
-          data: vals,
-          backgroundColor: "rgba(255, 214, 102, 0.55)",
-          borderColor: "#ffd666",
-          borderWidth: 1,
-        }],
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: chartScales(),
-      },
+    const labels = sample.history.map(function (h) { return h.date; });
+    const datasets = withHist.map(function (s, idx) {
+      const hist = stockHistory(s);
+      const lastRow = hist[hist.length - 1];
+      const base = historyValue(lastRow, activeWin);
+      const color = STOCK_COLORS[idx % STOCK_COLORS.length];
+      return {
+        label: (s.name || s.code).slice(0, 10),
+        data: hist.map(function (row) {
+          const v = historyValue(row, activeWin);
+          if (v == null || base == null || base === 0) return null;
+          return (v / base) * 100;
+        }),
+        borderColor: color,
+        backgroundColor: color + "33",
+        tension: 0.25,
+        spanGaps: false,
+        pointRadius: 2,
+        pointHoverRadius: 4,
+      };
     });
+    const hasPoint = datasets.some(function (ds) {
+      return ds.data.some(function (v) { return v != null; });
+    });
+    if (!hasPoint) {
+      if (barChart) { barChart.destroy(); barChart = null; }
+      barEmpty.style.display = "flex";
+      barEmpty.textContent = "当前窗口 " + activeWin + " 日日均暂无足够回溯数据";
+    } else {
+      barEmpty.style.display = "none";
+      if (barChart) barChart.destroy();
+      barChart = new Chart(document.getElementById("barChart"), {
+        type: "line",
+        data: { labels: labels, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              labels: { color: "#ccc", boxWidth: 12, font: { size: 11 } },
+            },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  var pct = ctx.parsed.y;
+                  if (pct == null) return ctx.dataset.label + ": 暂无";
+                  return ctx.dataset.label + ": " + pct.toFixed(1) + "%";
+                },
+              },
+            },
+          },
+          scales: chartScalesPct(),
+        },
+      });
+    }
   }
 
   const agg = aggregateDailySum(stocks);
@@ -869,7 +934,7 @@ function renderCharts(stocks) {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: chartScales(),
+      scales: chartScalesYuan(),
     },
   });
 }
@@ -1033,9 +1098,39 @@ def load_money_avg_watchlist_payload():
     return _sanitize_money_avg_watchlist_payload(payload)
 
 
+def _build_avg_history(daily, history_days=10, windows=None):
+    """从 daily 序列生成最近 history_days 个锚点日的 avg_Nd。"""
+    if not daily:
+        return []
+    windows = windows or [1, 3, 5, 10, 20]
+    monies = [float(d.get('money') or 0) for d in daily]
+    n = len(monies)
+    start = max(0, n - history_days)
+    history = []
+    for i in range(start, n):
+        prefix = monies[: i + 1]
+        row = {
+            'date': daily[i]['date'],
+            'day_offset': i - (n - 1),
+        }
+        for w in windows:
+            key = f'avg_{w}d_yi'
+            if len(prefix) >= w:
+                avg = sum(prefix[-w:]) / w
+                row[f'avg_{w}d'] = round(avg, 2)
+                row[key] = _fmt_yi_from_money(avg)
+            else:
+                row[f'avg_{w}d'] = None
+                row[key] = None
+        history.append(row)
+    return history
+
+
 def _sanitize_money_avg_watchlist_payload(payload):
-    """按回溯序列重算 avg_Nd；不足 N 日则为空。"""
-    windows = (payload.get('meta') or {}).get('roll_windows') or [1, 3, 5, 10, 20]
+    """按回溯序列重算 avg_Nd 与 history；不足 N 日则为空。"""
+    meta = payload.setdefault('meta', {})
+    windows = meta.get('roll_windows') or [1, 3, 5, 10, 20]
+    history_days = int(meta.get('history_days') or 10)
     by_date = payload.get('byDate') or {}
     entries = []
     for block in by_date.values():
@@ -1056,10 +1151,15 @@ def _sanitize_money_avg_watchlist_payload(payload):
                     stock[key] = _fmt_yi_from_money(avg)
             if daily:
                 stock['money_t_yi'] = daily[-1].get('money_yi')
-            entries.append({k: v for k, v in stock.items() if k != 'daily'})
+                stock['history'] = _build_avg_history(daily, history_days, windows)
+            elif not stock.get('history'):
+                stock['history'] = []
+            entries.append({k: v for k, v in stock.items() if k not in ('daily', 'history')})
             fixed.append(stock)
         block['stocks'] = fixed
     payload['entries'] = entries
+    meta.setdefault('money_lookback_days', meta.get('max_track_days') or 30)
+    meta.setdefault('history_days', history_days)
     return payload
 
 
