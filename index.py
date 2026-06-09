@@ -489,93 +489,414 @@ _MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; background: #111; color: #fff;
-      font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    html, body {
+      margin: 0; padding: 0;
+      background: #111; color: #fff;
+      font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.5; overflow-x: hidden;
+    }
     .page { padding: 16px 20px 32px; max-width: 1500px; margin: 0 auto; }
-    .section-intro { padding: 15px 20px; color: #8b9cb3; background: #1a1a1a;
-      border-radius: 10px; margin-bottom: 14px; line-height: 1.7; font-size: 14px; }
+    .section-intro {
+      padding: 15px 20px; color: #8b9cb3;
+      background: #1a1a1a; border-radius: 10px;
+      margin-bottom: 14px; line-height: 1.7; font-size: 14px;
+    }
     .section-intro h2 { margin: 0 0 8px; color: #ffd666; font-size: 20px; }
-    .card { background: #1f1f1f; border: 1px solid #333; border-radius: 10px;
-      padding: 16px; margin-bottom: 14px; }
-    .card h2 { margin: 0 0 8px; font-size: 16px; color: #ffd666; }
-    .hint { font-size: 13px; color: #8b9cb3; margin: 0 0 12px; }
-    .chart-box { height: 420px; position: relative; }
-    .legend-note { font-size: 12px; color: #8b9cb3; margin-top: 8px; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+      margin-bottom: 14px;
+    }
+    label { color: #8b9cb3; font-size: 14px; }
+    select, input {
+      background: #333; border: 1px solid #444; color: #fff;
+      padding: 8px 10px; border-radius: 6px; font-size: 14px;
+    }
+    .filter-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btns button {
+      background: #333; color: #fff; border: none;
+      border-radius: 8px; padding: 10px 16px; cursor: pointer; font-size: 14px;
+    }
+    .filter-btns button:hover { background: #555; }
+    .filter-btns button.active {
+      background: rgba(255, 214, 102, 0.15);
+      box-shadow: inset 0 0 0 1px #ffd666; color: #ffd666;
+    }
+    .stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px; margin-bottom: 14px;
+    }
+    .stat {
+      background: #1f1f1f; border: 1px solid #333;
+      border-radius: 8px; padding: 10px 14px;
+    }
+    .stat label { display: block; color: #8b9cb3; font-size: 12px; }
+    .stat span { font-size: 17px; font-weight: 600; color: #fff; }
+    .card {
+      background: #1f1f1f; border: 1px solid #333;
+      border-radius: 10px; padding: 16px; margin-bottom: 14px;
+    }
+    .card h2 { margin: 0 0 10px; font-size: 16px; color: #ffd666; font-weight: 600; }
+    .hint { font-size: 13px; color: #8b9cb3; margin: 0 0 10px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 960px) { .grid2 { grid-template-columns: 1fr; } }
+    .chart-box { height: 280px; position: relative; }
+    .chart-empty {
+      position: absolute; inset: 0; display: none;
+      align-items: center; justify-content: center;
+      color: #8b9cb3; font-size: 15px; text-align: center;
+      padding: 20px; background: rgba(17, 17, 17, 0.85);
+    }
+    .table-wrap {
+      max-height: 55vh; overflow: auto;
+      border-radius: 8px; border: 1px solid #333;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid #333; text-align: right; }
+    th {
+      background: #333; color: #8b9cb3; font-weight: 500;
+      position: sticky; top: 0; z-index: 2;
+    }
+    th.left, td.left { text-align: left; }
+    tr:hover { background: rgba(255, 214, 102, 0.06); }
+    tr.sel { background: rgba(255, 214, 102, 0.12); }
+    .detail-card {
+      border: 1px solid #333; border-radius: 10px; overflow: hidden;
+    }
+    .detail-head {
+      padding: 12px 14px; border-bottom: 1px solid #333;
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+      background: #1a1a1a;
+    }
+    .detail-name { font-weight: 600; color: #ffd666; }
+    .detail-code { color: #8b9cb3; font-family: Consolas, monospace; font-size: 13px; }
+    .badge {
+      font-size: 12px; padding: 2px 8px; border-radius: 4px;
+      background: rgba(255, 214, 102, 0.15); color: #ffd666;
+    }
+    .empty { text-align: center; padding: 24px; color: #8b9cb3; }
   </style>
 </head>
 <body>
 <div class="page">
   <div class="section-intro">
     <h2 id="pageTitle">新增板块3/5/10/20日日均成交额汇总</h2>
-    <p id="pageSub" class="hint" style="margin:0;"></p>
+    <p id="pageSub" class="hint" style="margin:0;color:#8b9cb3;"></p>
   </div>
+
+  <div class="toolbar">
+    <label>信号日 T <select id="dateSelect"></select></label>
+    <label>搜索 <input id="searchInput" placeholder="代码 / 名称" style="min-width:140px"/></label>
+    <div class="filter-btns" id="winBtns">
+      <button type="button" class="active" data-win="1">1日日均</button>
+      <button type="button" data-win="3">3日日均</button>
+      <button type="button" data-win="5">5日日均</button>
+      <button type="button" data-win="10">10日日均</button>
+      <button type="button" data-win="20">20日日均</button>
+    </div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>当日日均对比（亿元）</h2>
+      <p class="hint">所选信号日各新进股的 N 日日均成交额（向前含T）</p>
+      <div class="chart-box">
+        <canvas id="barChart"></canvas>
+        <div class="chart-empty" id="barChartEmpty"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>当日回溯合计走势（亿元）</h2>
+      <p class="hint">所选日全部新进股向前回溯逐日成交额之和（末条为T日）</p>
+      <div class="chart-box"><canvas id="lineChart"></canvas></div>
+    </div>
+  </div>
+
   <div class="card">
-    <h2>各信号日新进股 · 向前回溯日均成交额（亿元）</h2>
-    <p class="hint">每条折线 = 当日全部新进股在该窗口下的<strong>算术平均日均成交额</strong>。
-      avg_Nd = 从 T 往前 N 个交易日（含 T）成交额之和 ÷ N。与「向后合计」模块不同，本图向前看，最新日也可算满 3/5/10/20 日。</p>
-    <div class="chart-box"><canvas id="avgLineChart"></canvas></div>
-    <p class="legend-note">悬停可看当日新进只数；不足 N 个交易日历史则为空点。</p>
+    <h2>日均表 · 点击行查看回溯明细</h2>
+    <p class="hint">单位：亿元。1日=T日成交额；avg_Nd = 从 T 往前 N 个交易日成交额均值（含 T 日）</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="left">名称</th>
+            <th class="left">代码</th>
+            <th>T日</th>
+            <th>3日</th>
+            <th>5日</th>
+            <th>10日</th>
+            <th>20日</th>
+            <th>可回溯</th>
+          </tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" id="detailCard" style="display:none">
+    <h2 id="detailTitle">逐日明细</h2>
+    <div id="detailContent"></div>
   </div>
 </div>
+
 <script>
 const DATA = __PAYLOAD__;
 const meta = DATA.meta || {};
+const byDate = DATA.byDate || {};
 const dates = DATA.dates || [];
-const avgLines = DATA.avg_lines || {};
-const newCounts = DATA.new_counts || [];
-const windows = (meta.roll_windows || [3, 5, 10, 20]).map(String);
 
-document.getElementById("pageTitle").textContent = meta.title || "新增板块3/5/10/20日日均成交额汇总";
+document.getElementById("pageTitle").textContent =
+  meta.title || "新增板块3/5/10/20日日均成交额汇总";
 document.getElementById("pageSub").textContent =
   "信号日 " + (meta.signal_days || dates.length) + " 个 · 新进条目 "
-  + (meta.total_entries || 0) + " 条 · 窗口 "
-  + windows.join("/") + " 交易日 · "
+  + (meta.total_entries || 0) + " 条 · 日均窗口 "
+  + (meta.roll_windows || [1, 3, 5, 10, 20]).join("/") + " 交易日 · 数据 "
   + (meta.backtest_start || "") + " ~ " + (meta.last_signal_date || "");
 
-const COLORS = { "3": "#ffd666", "5": "#52c41a", "10": "#1890ff", "20": "#eb2f96" };
-const datasets = windows.map(function (w) {
+const dateSelect = document.getElementById("dateSelect");
+const searchInput = document.getElementById("searchInput");
+const summaryBody = document.getElementById("summaryBody");
+const statsEl = document.getElementById("stats");
+const detailCard = document.getElementById("detailCard");
+const detailTitle = document.getElementById("detailTitle");
+const detailContent = document.getElementById("detailContent");
+
+let activeWin = 1;
+let selectedCode = null;
+let barChart = null;
+let lineChart = null;
+
+function fmt(v) {
+  if (v == null || v === "" || Number.isNaN(v)) return "暂无";
+  return Number(v).toFixed(2);
+}
+
+function observedDays(stock) {
+  return stock.track_days || (stock.daily ? stock.daily.length : 0);
+}
+
+function canComputeWin(stock, win) {
+  if (win === 1) return stock.money_t_yi != null && stock.money_t_yi !== "";
+  const key = yiKey(win);
+  return observedDays(stock) >= win && stock[key] != null;
+}
+
+function fmtWin(stock, win) {
+  if (!canComputeWin(stock, win)) return "暂无";
+  if (win === 1) return fmt(stock.money_t_yi);
+  return fmt(stock[yiKey(win)]);
+}
+
+function yiKey(win) {
+  if (win === 1) return "money_t_yi";
+  return "avg_" + win + "d_yi";
+}
+
+function currentStocks() {
+  const d = dateSelect.value;
+  const block = byDate[d] || { stocks: [] };
+  const q = (searchInput.value || "").trim().toLowerCase();
+  return (block.stocks || []).filter(function (s) {
+    if (!q) return true;
+    return (s.code || "").toLowerCase().indexOf(q) >= 0
+      || (s.name || "").toLowerCase().indexOf(q) >= 0;
+  });
+}
+
+function fillDates() {
+  dateSelect.innerHTML = "";
+  dates.forEach(function (d) {
+    const n = (byDate[d] && byDate[d].stocks) ? byDate[d].stocks.length : 0;
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = n ? (d + "（" + n + " 只）") : (d + "（无新进）");
+    dateSelect.appendChild(opt);
+  });
+  if (dates.length) dateSelect.value = dates[dates.length - 1];
+}
+
+function renderStats(stocks) {
+  const cnt = stocks.length;
+  const avgT = cnt ? stocks.reduce(function (a, s) { return a + (s.money_t_yi || 0); }, 0) / cnt : 0;
+  const key = yiKey(activeWin);
+  const valid = stocks.filter(function (s) { return canComputeWin(s, activeWin); });
+  let avgSumText, totalSumText;
+  if (activeWin > 1 && valid.length === 0) {
+    avgSumText = "暂无";
+    totalSumText = "暂无";
+  } else {
+    const avgSum = valid.length
+      ? valid.reduce(function (a, s) { return a + s[key]; }, 0) / valid.length
+      : 0;
+    const totalSum = valid.reduce(function (a, s) { return a + s[key]; }, 0);
+    avgSumText = fmt(avgSum) + " 亿";
+    totalSumText = fmt(totalSum) + " 亿";
+  }
+  const rows = [
+    ["当日新进", cnt + " 只"],
+    ["T日成交额均值", fmt(avgT) + " 亿"],
+    [activeWin + "日日均均值", avgSumText],
+    [activeWin + "日日均合计", totalSumText],
+    ["可算" + activeWin + "日", valid.length + " 只"],
+  ];
+  statsEl.innerHTML = rows.map(function (pair) {
+    return '<div class="stat"><label>' + pair[0] + '</label><span>' + pair[1] + '</span></div>';
+  }).join("");
+}
+
+function renderSummary(stocks) {
+  summaryBody.innerHTML = stocks.map(function (s) {
+    const sel = s.code === selectedCode ? "sel" : "";
+    return '<tr class="' + sel + '" data-code="' + s.code + '">'
+      + '<td class="left">' + (s.name || "—") + '</td>'
+      + '<td class="left">' + s.code + '</td>'
+      + '<td>' + fmt(s.money_t_yi) + '</td>'
+      + '<td>' + fmtWin(s, 3) + '</td>'
+      + '<td>' + fmtWin(s, 5) + '</td>'
+      + '<td>' + fmtWin(s, 10) + '</td>'
+      + '<td>' + fmtWin(s, 20) + '</td>'
+      + '<td>' + observedDays(s) + ' 日</td></tr>';
+  }).join("") || '<tr><td colspan="8" class="empty">无数据</td></tr>';
+
+  summaryBody.querySelectorAll("tr[data-code]").forEach(function (tr) {
+    tr.addEventListener("click", function () {
+      selectedCode = tr.dataset.code;
+      renderSummary(stocks);
+      renderDetail(stocks.find(function (x) { return x.code === selectedCode; }));
+    });
+  });
+}
+
+function renderDetail(stock) {
+  if (!stock || !stock.daily || !stock.daily.length) {
+    detailCard.style.display = "none";
+    return;
+  }
+  detailCard.style.display = "block";
+  detailTitle.textContent = "【" + stock.name + "】" + stock.code + " · 回溯逐日成交额（亿元）";
+  const rows = stock.daily.map(function (d) {
+    return '<tr><td class="left">第 ' + d.day + ' 日</td><td class="left">' + d.date
+      + '</td><td>' + fmt(d.money_yi) + '</td></tr>';
+  }).join("");
+  detailContent.innerHTML =
+    '<div class="detail-card"><div class="detail-head">'
+    + '<span class="detail-name">' + stock.name + '</span>'
+    + '<span class="detail-code">' + stock.code + '</span>'
+    + '<span class="badge">T=' + stock.entry_date + '</span></div>'
+    + '<table><thead><tr><th class="left">序</th><th class="left">日期</th><th>成交额(亿)</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table></div>';
+}
+
+function aggregateDailySum(stocks) {
+  const map = {};
+  stocks.forEach(function (s) {
+    (s.daily || []).forEach(function (d) {
+      map[d.day] = (map[d.day] || 0) + (d.money_yi || 0);
+    });
+  });
+  const keys = Object.keys(map).sort(function (a, b) { return a - b; });
+  const last = keys.length ? +keys[keys.length - 1] : 0;
+  return keys.map(function (k) {
+    const day = +k;
+    const label = day === last ? "T日" : ("T-" + (last - day));
+    return { day: day, sum: map[k], label: label };
+  });
+}
+
+function chartScales() {
   return {
-    label: w + "日日均(亿)",
-    data: (avgLines[w] || []).map(function (v) { return v == null ? null : Number(v); }),
-    borderColor: COLORS[w] || "#aaa",
-    backgroundColor: (COLORS[w] || "#aaa") + "33",
-    tension: 0.25,
-    spanGaps: false,
-    pointRadius: 3,
-    pointHoverRadius: 5,
+    x: { ticks: { color: "#8b9cb3", maxRotation: 45 }, grid: { color: "#2a2a2a" } },
+    y: {
+      ticks: { color: "#8b9cb3" },
+      grid: { color: "#2a2a2a" },
+      title: { display: true, text: "亿元", color: "#8b9cb3" },
+    },
   };
+}
+
+function renderCharts(stocks) {
+  const key = yiKey(activeWin);
+  const valid = stocks.filter(function (s) { return canComputeWin(s, activeWin); });
+  const barEmpty = document.getElementById("barChartEmpty");
+  const chartStocks = activeWin === 1 ? stocks : valid;
+
+  if (activeWin > 1 && valid.length === 0) {
+    if (barChart) { barChart.destroy(); barChart = null; }
+    barEmpty.style.display = "flex";
+    barEmpty.textContent = "当前日期还没有 " + activeWin + " 日汇总";
+  } else {
+    barEmpty.style.display = "none";
+    const labels = chartStocks.map(function (s) { return (s.name || s.code).slice(0, 8); });
+    const vals = chartStocks.map(function (s) { return s[key]; });
+    if (barChart) barChart.destroy();
+    barChart = new Chart(document.getElementById("barChart"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: activeWin + "日日均(亿)",
+          data: vals,
+          backgroundColor: "rgba(255, 214, 102, 0.55)",
+          borderColor: "#ffd666",
+          borderWidth: 1,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: chartScales(),
+      },
+    });
+  }
+
+  const agg = aggregateDailySum(stocks);
+  if (lineChart) lineChart.destroy();
+  lineChart = new Chart(document.getElementById("lineChart"), {
+    type: "line",
+    data: {
+      labels: agg.map(function (x) { return x.label || ("第" + x.day + "日"); }),
+      datasets: [{
+        label: "当日全部新进回溯合计(亿)",
+        data: agg.map(function (x) { return x.sum; }),
+        borderColor: "#52c41a",
+        backgroundColor: "rgba(82, 196, 26, 0.12)",
+        fill: true,
+        tension: 0.25,
+      }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: chartScales(),
+    },
+  });
+}
+
+function render() {
+  const stocks = currentStocks();
+  selectedCode = null;
+  detailCard.style.display = "none";
+  renderStats(stocks);
+  renderSummary(stocks);
+  renderCharts(stocks);
+}
+
+document.getElementById("winBtns").addEventListener("click", function (e) {
+  const btn = e.target.closest("button[data-win]");
+  if (!btn) return;
+  document.querySelectorAll("#winBtns button").forEach(function (b) { b.classList.remove("active"); });
+  btn.classList.add("active");
+  activeWin = +btn.dataset.win;
+  render();
 });
 
-new Chart(document.getElementById("avgLineChart"), {
-  type: "line",
-  data: { labels: dates, datasets: datasets },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: "index", intersect: false },
-    plugins: {
-      legend: { labels: { color: "#ccc" } },
-      tooltip: {
-        callbacks: {
-          afterTitle: function (items) {
-            if (!items.length) return "";
-            var i = items[0].dataIndex;
-            var n = newCounts[i];
-            return n != null ? "当日新进 " + n + " 只" : "";
-          },
-        },
-      },
-    },
-    scales: {
-      x: { ticks: { color: "#8b9cb3", maxRotation: 45 }, grid: { color: "#2a2a2a" } },
-      y: {
-        ticks: { color: "#8b9cb3" },
-        grid: { color: "#2a2a2a" },
-        title: { display: true, text: "亿元", color: "#8b9cb3" },
-      },
-    },
-  },
-});
+dateSelect.addEventListener("change", render);
+searchInput.addEventListener("input", render);
+
+fillDates();
+render();
 </script>
 </body>
 </html>
@@ -709,6 +1030,36 @@ def load_money_avg_watchlist_payload():
         )
     payload = json.loads(json_path.read_text(encoding='utf-8'))
     payload.setdefault('meta', {}).setdefault('title', '新增板块3/5/10/20日日均成交额汇总')
+    return _sanitize_money_avg_watchlist_payload(payload)
+
+
+def _sanitize_money_avg_watchlist_payload(payload):
+    """按回溯序列重算 avg_Nd；不足 N 日则为空。"""
+    windows = (payload.get('meta') or {}).get('roll_windows') or [1, 3, 5, 10, 20]
+    by_date = payload.get('byDate') or {}
+    entries = []
+    for block in by_date.values():
+        fixed = []
+        for stock in block.get('stocks') or []:
+            daily = stock.get('daily') or []
+            track = len(daily) if daily else int(stock.get('track_days') or 0)
+            stock['track_days'] = track
+            monies = [float(d.get('money') or 0) for d in daily]
+            for w in windows:
+                key = f'avg_{w}d_yi'
+                if track < w:
+                    stock[f'avg_{w}d'] = None
+                    stock[key] = None
+                else:
+                    avg = sum(monies[-w:]) / w
+                    stock[f'avg_{w}d'] = round(avg, 2)
+                    stock[key] = _fmt_yi_from_money(avg)
+            if daily:
+                stock['money_t_yi'] = daily[-1].get('money_yi')
+            entries.append({k: v for k, v in stock.items() if k != 'daily'})
+            fixed.append(stock)
+        block['stocks'] = fixed
+    payload['entries'] = entries
     return payload
 
 
