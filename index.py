@@ -478,6 +478,108 @@ render();
 
 ROOT = Path(__file__).resolve().parent
 MONEY_WATCHLIST_OUT = ROOT / 'money_watchlist.html'
+MONEY_AVG_WATCHLIST_OUT = ROOT / 'money_avg_watchlist.html'
+
+_MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>新增板块3/5/10/20日日均成交额汇总</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #111; color: #fff;
+      font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .page { padding: 16px 20px 32px; max-width: 1500px; margin: 0 auto; }
+    .section-intro { padding: 15px 20px; color: #8b9cb3; background: #1a1a1a;
+      border-radius: 10px; margin-bottom: 14px; line-height: 1.7; font-size: 14px; }
+    .section-intro h2 { margin: 0 0 8px; color: #ffd666; font-size: 20px; }
+    .card { background: #1f1f1f; border: 1px solid #333; border-radius: 10px;
+      padding: 16px; margin-bottom: 14px; }
+    .card h2 { margin: 0 0 8px; font-size: 16px; color: #ffd666; }
+    .hint { font-size: 13px; color: #8b9cb3; margin: 0 0 12px; }
+    .chart-box { height: 420px; position: relative; }
+    .legend-note { font-size: 12px; color: #8b9cb3; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="section-intro">
+    <h2 id="pageTitle">新增板块3/5/10/20日日均成交额汇总</h2>
+    <p id="pageSub" class="hint" style="margin:0;"></p>
+  </div>
+  <div class="card">
+    <h2>各信号日新进股 · 向前回溯日均成交额（亿元）</h2>
+    <p class="hint">每条折线 = 当日全部新进股在该窗口下的<strong>算术平均日均成交额</strong>。
+      avg_Nd = 从 T 往前 N 个交易日（含 T）成交额之和 ÷ N。与「向后合计」模块不同，本图向前看，最新日也可算满 3/5/10/20 日。</p>
+    <div class="chart-box"><canvas id="avgLineChart"></canvas></div>
+    <p class="legend-note">悬停可看当日新进只数；不足 N 个交易日历史则为空点。</p>
+  </div>
+</div>
+<script>
+const DATA = __PAYLOAD__;
+const meta = DATA.meta || {};
+const dates = DATA.dates || [];
+const avgLines = DATA.avg_lines || {};
+const newCounts = DATA.new_counts || [];
+const windows = (meta.roll_windows || [3, 5, 10, 20]).map(String);
+
+document.getElementById("pageTitle").textContent = meta.title || "新增板块3/5/10/20日日均成交额汇总";
+document.getElementById("pageSub").textContent =
+  "信号日 " + (meta.signal_days || dates.length) + " 个 · 新进条目 "
+  + (meta.total_entries || 0) + " 条 · 窗口 "
+  + windows.join("/") + " 交易日 · "
+  + (meta.backtest_start || "") + " ~ " + (meta.last_signal_date || "");
+
+const COLORS = { "3": "#ffd666", "5": "#52c41a", "10": "#1890ff", "20": "#eb2f96" };
+const datasets = windows.map(function (w) {
+  return {
+    label: w + "日日均(亿)",
+    data: (avgLines[w] || []).map(function (v) { return v == null ? null : Number(v); }),
+    borderColor: COLORS[w] || "#aaa",
+    backgroundColor: (COLORS[w] || "#aaa") + "33",
+    tension: 0.25,
+    spanGaps: false,
+    pointRadius: 3,
+    pointHoverRadius: 5,
+  };
+});
+
+new Chart(document.getElementById("avgLineChart"), {
+  type: "line",
+  data: { labels: dates, datasets: datasets },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: "index", intersect: false },
+    plugins: {
+      legend: { labels: { color: "#ccc" } },
+      tooltip: {
+        callbacks: {
+          afterTitle: function (items) {
+            if (!items.length) return "";
+            var i = items[0].dataIndex;
+            var n = newCounts[i];
+            return n != null ? "当日新进 " + n + " 只" : "";
+          },
+        },
+      },
+    },
+    scales: {
+      x: { ticks: { color: "#8b9cb3", maxRotation: 45 }, grid: { color: "#2a2a2a" } },
+      y: {
+        ticks: { color: "#8b9cb3" },
+        grid: { color: "#2a2a2a" },
+        title: { display: true, text: "亿元", color: "#8b9cb3" },
+      },
+    },
+  },
+});
+</script>
+</body>
+</html>
+"""
 
 
 def _find_money_data_file(name):
@@ -597,6 +699,40 @@ def build_money_watchlist_page():
     html = _MONEY_WATCHLIST_TEMPLATE.replace('__PAYLOAD__', json.dumps(payload, ensure_ascii=False))
     MONEY_WATCHLIST_OUT.write_text(html, encoding='utf-8')
     return MONEY_WATCHLIST_OUT
+
+
+def load_money_avg_watchlist_payload():
+    json_path = _find_money_data_file('top50_money_avg_watchlist.json')
+    if not json_path:
+        raise FileNotFoundError(
+            '找不到 top50_money_avg_watchlist.json，请先在聚宽运行 top50_daily_pipeline_jq.py 并下载到 python_files'
+        )
+    payload = json.loads(json_path.read_text(encoding='utf-8'))
+    payload.setdefault('meta', {}).setdefault('title', '新增板块3/5/10/20日日均成交额汇总')
+    return payload
+
+
+def build_money_avg_watchlist_page():
+    payload = load_money_avg_watchlist_payload()
+    html = _MONEY_AVG_WATCHLIST_TEMPLATE.replace('__PAYLOAD__', json.dumps(payload, ensure_ascii=False))
+    MONEY_AVG_WATCHLIST_OUT.write_text(html, encoding='utf-8')
+    return MONEY_AVG_WATCHLIST_OUT
+
+
+def _ensure_index_tab_button(index_html, page_file, button_label):
+    if page_file in index_html:
+        return index_html
+    anchor = "changePage('money_watchlist.html')"
+    insert_btn = (
+        f"    <button onclick=\"changePage('{page_file}')\">{button_label}</button>"
+    )
+    pos = index_html.find(anchor)
+    if pos < 0:
+        return index_html
+    end = index_html.find('</button>', pos)
+    if end < 0:
+        return index_html
+    return index_html[: end + 9] + '\n' + insert_btn + index_html[end + 9 :]
 
 
 # =========================
@@ -1271,6 +1407,12 @@ try:
 except Exception as e:
     print(f"  ⚠ 成交额汇总页未生成: {e}")
 
+try:
+    money_avg_path = build_money_avg_watchlist_page()
+    print(f"  -> {money_avg_path.name} 已生成（第7板块 iframe）")
+except Exception as e:
+    print(f"  ⚠ 日均成交额页未生成: {e}")
+
 print("Dashboard 生成完成！")
 print(f"最新交易日: {latest_trade_date}，累计为正: {latest_snapshot['total']} 只")
 print(f"  -> 日期存档: {all_cutoff_dates[0]} ~ {all_cutoff_dates[-1]} 共 {len(all_cutoff_dates)} 个交易日")
@@ -1311,6 +1453,12 @@ else:
         positive_cum_script + "\n<script>\nvar MAX_DISPLAY_DAY",
         1,
     )
+
+index_html = _ensure_index_tab_button(
+    index_html,
+    'money_avg_watchlist.html',
+    '新增板块3/5/10/20日日均成交额汇总',
+)
 
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(index_html)
