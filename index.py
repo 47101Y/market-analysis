@@ -608,8 +608,8 @@ _MONEY_AVG_WATCHLIST_TEMPLATE = """<!DOCTYPE html>
 
   <div class="grid2">
     <div class="card">
-      <h2 id="barChartTitle">1日走势（归一化%）</h2>
-      <p class="hint" id="barChartHint">横轴为信号日前 10 个交易日；每只股票一条线，纵轴为 1 日日均成交额相对开头日的百分比（开头日 = 100%）</p>
+      <h2 id="barChartTitle">1日走势（相对涨跌%）</h2>
+      <p class="hint" id="barChartHint">横轴为信号日前 10 个交易日；每只股票一条线，纵轴为相对开头日的涨跌（开头日 = 0%）</p>
       <div class="chart-box">
         <canvas id="barChart"></canvas>
         <div class="chart-empty" id="barChartEmpty"></div>
@@ -725,17 +725,27 @@ function historyValue(row, win) {
   return row["avg_" + win + "d_yi"];
 }
 
+function netChangeFromBase(v, base) {
+  if (v == null || base == null || base === 0) return null;
+  return (v / base) * 100 - 100;
+}
+
+function fmtNetPct(v) {
+  if (v == null || Number.isNaN(v)) return "暂无";
+  return v.toFixed(1) + "%";
+}
+
 function stockHistory(stock) {
   if (stock.history && stock.history.length) return stock.history;
   return [];
 }
 
-function buildHistoryFromDaily(stock) {
+function buildHistoryFromDaily(stock, historyDays) {
   const daily = stock.daily || [];
-  const historyDays = meta.history_days || 10;
+  const days = historyDays != null ? historyDays : (meta.history_days || 10);
   if (!daily.length) return [];
   const n = daily.length;
-  const start = Math.max(0, n - historyDays);
+  const start = Math.max(0, n - days);
   const history = [];
   for (let i = start; i < n; i++) {
     const prefix = daily.slice(0, i + 1).map(function (d) { return d.money_yi || 0; });
@@ -755,7 +765,7 @@ function buildHistoryFromDaily(stock) {
 
 function getStockHistory(stock) {
   const hist = stockHistory(stock);
-  return hist.length ? hist : buildHistoryFromDaily(stock);
+  return hist.length ? hist : buildHistoryFromDaily(stock, meta.history_days || 10);
 }
 
 function backwardSumYi(stock, win) {
@@ -859,7 +869,8 @@ function renderDetail(stock) {
     if (detailChart) { detailChart.destroy(); detailChart = null; }
     return;
   }
-  const hist = getStockHistory(stock);
+  const detailHistDays = meta.detail_history_days || 20;
+  const hist = buildHistoryFromDaily(stock, detailHistDays);
   const hasDaily = stock.daily && stock.daily.length;
   if (!hist.length && !hasDaily) {
     detailCard.style.display = "none";
@@ -875,7 +886,7 @@ function renderDetail(stock) {
     + '<span class="detail-code">' + stock.code + '</span>'
     + '<span class="badge">T=' + stock.entry_date + '</span></div>'
     + '<div class="detail-body">'
-    + '<p class="hint">5 条线分别为 1/3/5/10/20 日日均，纵轴为相对开头日的百分比（开头日 = 100%）</p>'
+    + '<p class="hint">5 条线分别为 1/3/5/10/20 日日均，纵轴为相对开头日的涨跌（开头日 = 0%）</p>'
     + '<div class="chart-box"><canvas id="detailAvgChart"></canvas></div>'
     + (hasDaily
       ? ('<div class="detail-table-title">回溯逐日成交额（亿元）</div>'
@@ -902,8 +913,7 @@ function renderDetail(stock) {
       label: win + "日日均",
       data: hist.map(function (row) {
         const v = historyValue(row, win);
-        if (v == null || base == null || base === 0) return null;
-        return (v / base) * 100;
+        return netChangeFromBase(v, base);
       }),
       borderColor: color,
       backgroundColor: color + "33",
@@ -931,7 +941,7 @@ function renderDetail(stock) {
             label: function (ctx) {
               var pct = ctx.parsed.y;
               if (pct == null) return ctx.dataset.label + ": 暂无";
-              return ctx.dataset.label + ": " + pct.toFixed(1) + "%";
+              return ctx.dataset.label + ": " + fmtNetPct(pct);
             },
           },
         },
@@ -961,7 +971,7 @@ function chartScalesPct() {
         callback: function (v) { return v + "%"; },
       },
       grid: { color: "#2a2a2a" },
-      title: { display: true, text: "归一化%（开头日=100%）", color: "#8b9cb3" },
+      title: { display: true, text: "相对开头日涨跌%（开头日=0%）", color: "#8b9cb3" },
     },
   };
 }
@@ -969,10 +979,10 @@ function chartScalesPct() {
 function renderCharts(stocks) {
   const barEmpty = document.getElementById("barChartEmpty");
   const histDays = meta.history_days || 10;
-  document.getElementById("barChartTitle").textContent = activeWin + "日走势（归一化%）";
+  document.getElementById("barChartTitle").textContent = activeWin + "日走势（相对涨跌%）";
   document.getElementById("barChartHint").textContent =
     "横轴为信号日前 " + histDays + " 个交易日；每只股票一条线，纵轴为 "
-    + activeWin + " 日日均成交额相对开头日的百分比（开头日 = 100%）";
+    + activeWin + " 日日均相对开头日的涨跌（开头日 = 0%）";
   const withHist = stocks.filter(function (s) { return stockHistory(s).length; });
   const sample = withHist[0];
 
@@ -991,8 +1001,7 @@ function renderCharts(stocks) {
         label: (s.name || s.code).slice(0, 10),
         data: hist.map(function (row) {
           const v = historyValue(row, activeWin);
-          if (v == null || base == null || base === 0) return null;
-          return (v / base) * 100;
+          return netChangeFromBase(v, base);
         }),
         borderColor: color,
         backgroundColor: color + "33",
@@ -1029,7 +1038,7 @@ function renderCharts(stocks) {
                 label: function (ctx) {
                   var pct = ctx.parsed.y;
                   if (pct == null) return ctx.dataset.label + ": 暂无";
-                  return ctx.dataset.label + ": " + pct.toFixed(1) + "%";
+                  return ctx.dataset.label + ": " + fmtNetPct(pct);
                 },
               },
             },
@@ -1305,8 +1314,10 @@ def _sanitize_money_avg_watchlist_payload(payload):
             fixed.append(stock)
         block['stocks'] = fixed
     payload['entries'] = entries
-    meta.setdefault('money_lookback_days', meta.get('max_track_days') or 30)
+    meta.setdefault('money_lookback_days', meta.get('max_track_days') or 40)
     meta.setdefault('history_days', history_days)
+    meta.setdefault('detail_history_days', int(meta.get('detail_history_days') or 20))
+    meta.setdefault('detail_lookback_days', int(meta.get('detail_lookback_days') or meta.get('money_lookback_days') or 40))
     return payload
 
 
@@ -1478,6 +1489,16 @@ def stock_metrics_payload(row):
     return payload
 
 
+def stock_industry(row):
+    for col in ('industry', '行业'):
+        if col not in row.index:
+            continue
+        val = row[col]
+        if val is not None and pd.notna(val) and str(val).strip():
+            return str(val).strip()
+    return None
+
+
 new_detail = defaultdict(list)
 
 for _, row in new_df.iterrows():
@@ -1485,6 +1506,7 @@ for _, row in new_df.iterrows():
     item = {
         'stock': row['stock'],
         'name': row['name'],
+        'industry': stock_industry(row),
     }
     item.update(stock_metrics_payload(row))
     new_detail[date].append(item)
@@ -1495,6 +1517,7 @@ for _, row in weak_df.iterrows():
     item = {
         'stock': row['股票代码'],
         'name': row['名称'],
+        'industry': stock_industry(row),
     }
     item.update(stock_metrics_payload(row))
     weak_detail[row['date']].append(item)
@@ -1504,6 +1527,7 @@ for _, row in strong_df.iterrows():
     item = {
         'stock': row['股票代码'],
         'name': row['名称'],
+        'industry': stock_industry(row),
     }
     item.update(stock_metrics_payload(row))
     strong_detail[row['date']].append(item)
