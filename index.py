@@ -1,4 +1,3 @@
-﻿﻿import pandas as pd
 from pyecharts.charts import Bar, Pie, Timeline, Page
 from pyecharts import options as opts
 from pyecharts.globals import ThemeType
@@ -7,7 +6,7 @@ from pyecharts.globals import CurrentConfig
 import json
 import re
 from pathlib import Path
-
+import pandas as pd
 
 CurrentConfig.ONLINE_HOST = "https://assets.pyecharts.org/assets/v5/"
 

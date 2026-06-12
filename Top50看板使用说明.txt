@@ -1,0 +1,85 @@
+Top50 成交额新进 · 看板使用说明
+================================
+
+一、文件夹说明
+--------------
+python_files.zip  解压后得到 python_files 文件夹，里面是本地生成网页的代码。
+
+运行聚宽取数脚本，一键导出全部数据
+
+
+二、生成网页的步骤（每次更新数据后做一遍）
+------------------------------------------
+
+【第 1 步】聚宽研究环境取数
+  1. 打开聚宽研究，新建空白 Notebook
+  2. 打开 top50_daily_pipeline_jq.py，全文复制粘贴到一个 Cell 里
+  3. 运行一次（较久，等跑完）
+  4. 在左侧「文件列表」下载下面列出的数据文件
+
+【第 2 步】拷贝到本地
+  把下载的文件复制到 python_files 文件夹里（和 index.py 同一目录）
+
+【第 3 步】本地生成网页
+  1. 打开命令行，进入 python_files 目录，例如：
+       cd d:\MaggieY\python_files
+  2. 运行生成网页的代码：
+       python index.py
+  3. 看到“Dashboard 生成完成”即可
+
+【第 4 步】查看看板
+  可分别查看：
+  bar.html                柱状图统计
+  heat.html               行业热力分析
+  timeline_v2.html        行业轮动
+  positive_cum.html      最新增幅累计为正
+  money_watchlist.html    3/5/10/20 日成交额汇总
+
+  若要用浏览器打开 index.html（集合所有网页版）则要建立好仓库发布到 GitHub Pages：
+  先使用python运行index.py，然后更新推送文件夹（建议使用vscode）。
+
+
+三、外部数据源文件（从聚宽下载，放进 python_files）
+--------------------------------------------------
+
+本地 index.py 会读取下面这些文件（文件名需一致）：
+
+  必需（5 个 CSV）：
+    1. top50_daily_threshold.csv          每日 Top50 第 50 名成交额门槛
+    2. 每日成交额TOP50新增股票.csv        新进个股列表（蓝色柱体等）
+    3. strong_stocks.csv                  强者恒强（黄色柱体）
+    4. weak_to_strong.csv                 弱转强（绿色柱体）
+    5. new_stock_future_10days.csv        新进股未来 10 日开收盘
+
+  第六板块成交额汇总（二选一下载，推荐 json）：
+    6. top50_money_watchlist.json         推荐，含逐日成交额明细
+       或 top50_money_watchlist.csv       无 json 时备用（明细功能较弱）
+
+  可选（网页里「行业热力图」按钮用）：
+    7. new_heatmap.png                    行业热力图图片
+        industry_rotation.png                   行业轮动图（不用下载）
+
+  第七板块平均成交额汇总（二选一下载，推荐 json）：
+    8. top50_money_avg_watchlist.csv
+        或top50_money_avg_watchlist.json
+
+说明：
+  - 以上 CSV/JSON 由 top50_daily_pipeline_jq.py 一次全部导出
+  - 打开网页时不需要再读 CSV，index.py 已把数据写进 html 里
+  - 主力净流入/占比若最新一天为空，多为聚宽资金流延迟，次日再跑脚本即可
+
+
+四、本地环境要求
+----------------
+  - Python 3
+  - 安装依赖：pip install pandas pyecharts
+
+五、生成的主要网页文件
+----------------------
+  index.html              主入口（浏览器打开这个）
+  bar.html                柱状图统计
+  heat.html               行业热力分析
+  timeline_v2.html        行业轮动
+  positive_cum.html      最新增幅累计为正
+  money_watchlist.html    3/5/10/20 日成交额汇总
+  money_avg_watchlist.html     过去十日周期平均成交额汇总
